@@ -6,7 +6,12 @@ import logSettings from "../../log_settings";
 import {Logger} from "tslog";
 import {Libraries} from "hardhat-deploy/dist/types";
 import {parseUnits} from "ethers/lib/utils";
-import {ControllerMinimal, MockToken, ProxyControlled} from "../../typechain";
+import {
+  ControllerMinimal,
+  MockToken,
+  ProxyControlled,
+  TetuLiquidator__factory, UniswapV2Factory, UniswapV2Router02
+} from "../../typechain";
 import {VerifyUtils} from "./VerifyUtils";
 
 // tslint:disable-next-line:no-var-requires
@@ -94,6 +99,24 @@ export class DeployerUtils {
     const proxy = await DeployerUtils.deployContract(signer, 'ProxyControlled') as ProxyControlled;
     await proxy.initProxy(logic.address);
     return proxy.address;
+  }
+
+  public static async deployTetuLiquidator(signer: SignerWithAddress, controller: string) {
+    const proxy = await DeployerUtils.deployProxy(signer, 'TetuLiquidator')
+    const liq = TetuLiquidator__factory.connect(proxy, signer);
+    await liq.init(controller)
+    return liq;
+  }
+
+  public static async deployUniswap(signer: SignerWithAddress) {
+    const factory = await DeployerUtils.deployContract(signer, 'UniswapV2Factory', signer.address) as UniswapV2Factory;
+    const netToken = (await DeployerUtils.deployMockToken(signer, 'WETH')).address.toLowerCase();
+    const router = await DeployerUtils.deployContract(signer, 'UniswapV2Router02', factory.address, netToken) as UniswapV2Router02;
+    return {
+      factory,
+      netToken,
+      router
+    }
   }
 
 }
