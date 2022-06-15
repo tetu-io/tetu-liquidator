@@ -148,6 +148,27 @@ describe("Liquidator base Tests", function () {
     expect(usdcBalAfter.sub(usdcBal)).eq(90661);
   });
 
+  it("liquidate univ2 with predefined route test", async () => {
+    const usdcBal = await usdc.balanceOf(signer.address);
+    const swapper = await DeployerUtils.deployUni2Swapper(signer, controller.address);
+    await swapper.setFee(factory.address, 300);
+    await liquidator.addLargestPools([{
+      pool: tetuUsdc.address,
+      swapper: swapper.address,
+      tokenIn: tetu.address,
+      tokenOut: usdc.address,
+    }], false);
+    await tetu.approve(liquidator.address, Misc.MAX_UINT);
+    const data = await liquidator.buildRoute(tetu.address, usdc.address);
+    await liquidator.liquidateWithRoute(data.route, data.routeLength, parseUnits('0.1'), 10_000);
+    const usdcBalAfter = await usdc.balanceOf(signer.address);
+    expect(usdcBalAfter.sub(usdcBal)).eq(90661);
+  });
+
+  it("liquidate zero route revert", async () => {
+    await expect(liquidator.liquidateWithRoute([], 0, parseUnits('0.1'), 10_000)).revertedWith('ZERO_LENGTH');
+  });
+
   it("liquidate no route revert", async () => {
     await expect(liquidator.liquidate(tetu.address, usdc.address, parseUnits('0.1'), 10_000)).revertedWith('L: Not found pool for tokenIn');
   });

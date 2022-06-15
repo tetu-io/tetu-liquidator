@@ -7,20 +7,13 @@ import "./openzeppelin/SafeERC20.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/IERC20Metadata.sol";
 import "./interfaces/ISwapper.sol";
+import "./interfaces/ITetuLiquidator.sol";
 import "./proxy/ControllableV3.sol";
 
 /// @title Contract for determinate trade routes on-chain and sell any token for any token.
 /// @author belbix
-contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
+contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
   using SafeERC20 for IERC20;
-
-  // move to interface
-  struct PoolData {
-    address pool;
-    address swapper;
-    address tokenIn;
-    address tokenOut;
-  }
 
   // *************************************************************
   //                        CONSTANTS
@@ -109,19 +102,39 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
     address tokenOut,
     uint amount,
     uint slippage
-  ) external {
+  ) external override {
 
     (PoolData[] memory route, uint routeLength, string memory errorMessage) = buildRoute(tokenIn, tokenOut);
     if (routeLength == 0) {
       revert(errorMessage);
     }
 
+    _liquidate(route, routeLength, amount, slippage);
+  }
+
+  function liquidateWithRoute(
+    PoolData[] memory route,
+    uint routeLength,
+    uint amount,
+    uint slippage
+  ) external override {
+    _liquidate(route, routeLength, amount, slippage);
+  }
+
+  function _liquidate(
+    PoolData[] memory route,
+    uint routeLength,
+    uint amount,
+    uint slippage
+  ) internal {
+    require(routeLength > 0, "ZERO_LENGTH");
+
     for (uint i; i < routeLength; i++) {
       PoolData memory data = route[i];
 
       // if it is the first step send tokens to the swapper from the current contract
       if (i == 0) {
-        IERC20(tokenIn).safeTransferFrom(msg.sender, data.swapper, amount);
+        IERC20(data.tokenIn).safeTransferFrom(msg.sender, data.swapper, amount);
       }
       address recipient;
       // if it is not the last step of the route send to the next swapper
@@ -135,7 +148,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
       ISwapper(data.swapper).swap(data.pool, data.tokenIn, data.tokenOut, recipient, slippage);
     }
 
-    emit Liquidated(tokenIn, tokenOut, amount);
+    emit Liquidated(route[0].tokenIn, route[routeLength - 1].tokenOut, amount);
   }
 
   // *************************************************************
@@ -143,7 +156,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
   // *************************************************************
 
   /// @dev Check possibility liquidate tokenIn for tokenOut.
-  function isRouteExist(address tokenIn, address tokenOut) external view returns (bool) {
+  function isRouteExist(address tokenIn, address tokenOut) external view override returns (bool) {
     (, uint length,) = buildRoute(tokenIn, tokenOut);
     return length != 0;
   }
@@ -156,7 +169,11 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
   function buildRoute(
     address tokenIn,
     address tokenOut
-  ) public view returns (PoolData[] memory route, uint routeLength, string memory errorMessage)  {
+  ) public view override returns (
+    PoolData[] memory route,
+    uint routeLength,
+    string memory errorMessage
+  )  {
     route = new PoolData[](ROUTE_LENGTH_MAX);
 
     // --- BLUE CHIPS for in/out
