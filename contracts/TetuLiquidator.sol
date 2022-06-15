@@ -6,25 +6,18 @@ import "./openzeppelin/ReentrancyGuard.sol";
 import "./openzeppelin/SafeERC20.sol";
 import "./interfaces/IERC20.sol";
 import "./interfaces/IERC20Metadata.sol";
-import "./interfaces/IController.sol";
+import "./interfaces/ISwapper.sol";
 import "./proxy/ControllableV3.sol";
-
-import "hardhat/console.sol";
 
 /// @title Contract for determinate trade routes on-chain and sell any token for any token.
 /// @author belbix
 contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
   using SafeERC20 for IERC20;
 
-  enum PoolType {
-    UNKNOWN,
-    UNISWAP,
-    BALANCER
-  }
-
+  // move to interface
   struct PoolData {
     address pool;
-    PoolType poolType;
+    address swapper;
     address tokenIn;
     address tokenOut;
   }
@@ -56,6 +49,8 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
   // *************************************************************
 
   event Liquidated(address indexed tokenIn, address indexed tokenOut, uint amount);
+  event PoolAdded(PoolData poolData);
+  event BlueChipAdded(PoolData poolData);
 
   // *************************************************************
   //                        INIT
@@ -83,7 +78,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
       require(largestPools[pool.tokenIn].pool == address(0) || rewrite, "L: Exist");
       largestPools[pool.tokenIn] = pool;
 
-      // todo events
+      emit PoolAdded(pool);
     }
   }
 
@@ -94,36 +89,70 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
     for (uint i = 0; i < _pools.length; i++) {
       PoolData memory pool = _pools[i];
       require(blueChipsPools[pool.tokenIn][pool.tokenOut].pool == address(0) || rewrite, "L: Exist");
-      require(blueChipsPools[pool.tokenOut][pool.tokenIn].pool == address(0) || rewrite, "L: Exist");
+      // not necessary to check the reversed
 
       blueChipsPools[pool.tokenIn][pool.tokenOut] = pool;
       blueChipsPools[pool.tokenOut][pool.tokenIn] = pool;
       blueChipsTokens[pool.tokenIn] = true;
       blueChipsTokens[pool.tokenOut] = true;
 
-      // todo events
+      emit BlueChipAdded(pool);
     }
   }
-
-
-  // *************************************************************
-  //                        VIEWS
-  // *************************************************************
-
-
 
   // *************************************************************
   //                        LIQUIDATE
   // *************************************************************
 
-  function liquidate(address tokenIn, address tokenOut, uint amount) external {
+  function liquidate(
+    address tokenIn,
+    address tokenOut,
+    uint amount,
+    uint slippage
+  ) external {
 
+    (PoolData[] memory route, uint routeLength, string memory errorMessage) = buildRoute(tokenIn, tokenOut);
+    if (routeLength == 0) {
+      revert(errorMessage);
+    }
+
+    for (uint i; i < routeLength; i++) {
+      PoolData memory data = route[i];
+
+      // if it is the first step send tokens to the swapper from the current contract
+      if (i == 0) {
+        IERC20(tokenIn).safeTransferFrom(msg.sender, data.swapper, amount);
+      }
+      address recipient;
+      // if it is not the last step of the route send to the next swapper
+      if (i != routeLength - 1) {
+        recipient = route[i + 1].swapper;
+      } else {
+        // if it is the last step need to send to the sender
+        recipient = msg.sender;
+      }
+
+      ISwapper(data.swapper).swap(data.pool, data.tokenIn, data.tokenOut, recipient, slippage);
+    }
+
+    emit Liquidated(tokenIn, tokenOut, amount);
   }
 
   // *************************************************************
   //                        ROUTE
   // *************************************************************
 
+  /// @dev Check possibility liquidate tokenIn for tokenOut.
+  function isRouteExist(address tokenIn, address tokenOut) external view returns (bool) {
+    (, uint length,) = buildRoute(tokenIn, tokenOut);
+    return length != 0;
+  }
+
+  /// @dev Build route for liquidation. No reverts inside.
+  /// @return route Array of pools for liquidate tokenIn to tokenOut.
+  ///               Can have higher size than length. Ignore elements higher than `routeLength`.
+  /// @return routeLength Size of the route. Zero value indicates that the route was not found.
+  /// @return errorMessage Possible reason why the route was not found. Empty for success routes.
   function buildRoute(
     address tokenIn,
     address tokenOut
@@ -134,7 +163,6 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
 
     // in case that we try to liquidate blue chips use bc lps directly
     PoolData memory poolDataBC = blueChipsPools[tokenIn][tokenOut];
-    console.log("BC in out", poolDataBC.pool, IERC20Metadata(tokenIn).symbol(), IERC20Metadata(tokenOut).symbol());
     if (poolDataBC.pool != address(0)) {
       poolDataBC.tokenIn = tokenIn;
       poolDataBC.tokenOut = tokenOut;
@@ -147,10 +175,8 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
     // find the best Pool for token IN
     PoolData memory poolDataIn = largestPools[tokenIn];
     if (poolDataIn.pool == address(0)) {
-      return (route, 0, "L: Not found LP for tokenIn");
+      return (route, 0, "L: Not found pool for tokenIn");
     }
-
-    console.log("IN in", poolDataIn.pool, IERC20Metadata(poolDataIn.tokenIn).symbol(), IERC20Metadata(poolDataIn.tokenOut).symbol());
 
     route[0] = poolDataIn;
     // if the best Pool for token IN a pair with token OUT token we complete the route
@@ -162,7 +188,6 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
 
     // if we able to swap opposite token to a blue chip it is the cheaper way to liquidate
     poolDataBC = blueChipsPools[poolDataIn.tokenOut][tokenOut];
-    console.log("BC Pin out", poolDataBC.pool, IERC20Metadata(poolDataIn.tokenOut).symbol(), IERC20Metadata(tokenOut).symbol());
     if (poolDataBC.pool != address(0)) {
       poolDataBC.tokenIn = poolDataIn.tokenOut;
       poolDataBC.tokenOut = tokenOut;
@@ -172,13 +197,12 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
 
     // --- POOL for out
 
-    // find the largest LP for token out
+    // find the largest pool for token out
     PoolData memory poolDataOut = largestPools[tokenOut];
 
     if (poolDataOut.pool == address(0)) {
-      return (route, 0, "L: Not found LP for tokenOut");
+      return (route, 0, "L: Not found pool for tokenOut");
     }
-    console.log("OUT out", poolDataOut.pool, IERC20Metadata(poolDataOut.tokenIn).symbol(), IERC20Metadata(poolDataOut.tokenOut).symbol());
 
     // need to swap directions for tokenOut pool
     (poolDataOut.tokenIn, poolDataOut.tokenOut) = (poolDataOut.tokenOut, poolDataOut.tokenIn);
@@ -189,7 +213,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
       return (route, 1, "");
     }
 
-    // if we can swap between largest LPs the route is ended
+    // if we can swap between largest pools the route is ended
     if (poolDataIn.tokenOut == poolDataOut.tokenIn) {
       route[1] = poolDataOut;
       return (route, 2, "");
@@ -199,7 +223,6 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
 
     // if we able to swap opposite token to a blue chip it is the cheaper way to liquidate
     poolDataBC = blueChipsPools[poolDataIn.tokenOut][poolDataOut.tokenIn];
-    console.log("BC Pin Pout", poolDataBC.pool, IERC20Metadata(poolDataIn.tokenOut).symbol(), IERC20Metadata(poolDataOut.tokenIn).symbol());
     if (poolDataBC.pool != address(0)) {
       poolDataBC.tokenIn = poolDataIn.tokenOut;
       poolDataBC.tokenOut = poolDataOut.tokenIn;
@@ -208,33 +231,18 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
       return (route, 3, "");
     }
 
-    // UNREACHABLE - it will be covered in `if (poolDataIn.tokenOut == poolDataOut.tokenIn)`
-
-    // token OUT pool can be paired with BC pool with token IN
-    //    poolDataBC = blueChipsPools[tokenIn][poolDataOut.tokenIn];
-    //    console.log("BC in Pout", poolDataBC.pool, IERC20Metadata(tokenIn).symbol(), IERC20Metadata(poolDataOut.tokenIn).symbol());
-    //    if (poolDataBC.pool != address(0)) {
-    //      poolDataBC.tokenIn = tokenIn;
-    //      poolDataBC.tokenOut = poolDataOut.tokenIn;
-    //      route[0] = poolDataBC;
-    //      route[1] = poolDataOut;
-    //      return (route, 2, "");
-    //    }
-
     // ------------------------------------------------------------------------
     //                      RECURSIVE PART
     // We don't have 1-2 pair routes. Need to find pairs for pairs.
     // This part could be build as recursion but for reduce complexity and safe gas was not.
     // ------------------------------------------------------------------------
 
-
     // --- POOL2 for in
 
     PoolData memory poolDataIn2 = largestPools[poolDataIn.tokenOut];
     if (poolDataIn2.pool == address(0)) {
-      return (route, 0, "L: Not found LP for tokenIn2");
+      return (route, 0, "L: Not found pool for tokenIn2");
     }
-    console.log("IN2 in", poolDataIn.pool, IERC20Metadata(poolDataIn2.tokenIn).symbol(), IERC20Metadata(poolDataIn2.tokenOut).symbol());
 
     route[1] = poolDataIn2;
     if (poolDataIn2.tokenOut == tokenOut) {
@@ -249,7 +257,6 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
     // --- BC for POOL2_in
 
     poolDataBC = blueChipsPools[poolDataIn2.tokenOut][tokenOut];
-    console.log("BC Pin2 out", poolDataBC.pool, IERC20Metadata(poolDataIn2.tokenOut).symbol(), IERC20Metadata(tokenOut).symbol());
     if (poolDataBC.pool != address(0)) {
       poolDataBC.tokenIn = poolDataIn2.tokenOut;
       poolDataBC.tokenOut = tokenOut;
@@ -257,38 +264,18 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
       return (route, 3, "");
     }
 
-    // UNREACHABLE
-    //    poolDataBC = blueChipsPools[poolDataIn2.tokenOut][poolDataOut.tokenIn];
-    //    console.log("BC Pin2 Pout", poolDataBC.pool, IERC20Metadata(poolDataIn2.tokenOut).symbol(), IERC20Metadata(poolDataOut.tokenIn).symbol());
-    //    if (poolDataBC.pool != address(0)) {
-    //      poolDataBC.tokenIn = poolDataIn2.tokenOut;
-    //      poolDataBC.tokenOut = poolDataOut.tokenIn;
-    //      route[2] = poolDataBC;
-    //      route[3] = poolDataOut;
-    //      return (route, 4, "");
-    //    }
-
     // --- POOL2 for out
 
-    // find the largest LP for token out
+    // find the largest pool for token out
     PoolData memory poolDataOut2 = largestPools[poolDataOut.tokenIn];
     if (poolDataOut2.pool == address(0)) {
-      return (route, 0, "L: Not found LP for tokenOut2");
+      return (route, 0, "L: Not found pool for tokenOut2");
     }
-    console.log("OUT2 out", poolDataOut2.pool, IERC20Metadata(poolDataOut2.tokenIn).symbol(), IERC20Metadata(poolDataOut2.tokenOut).symbol());
 
     // need to swap directions for tokenOut2 pool
     (poolDataOut2.tokenIn, poolDataOut2.tokenOut) = (poolDataOut2.tokenOut, poolDataOut2.tokenIn);
 
-    // UNREACHABLE
-    // if the largest pool for tokenOut2 contains tokenIn it is the best way
-    //    if (tokenIn == poolDataOut2.tokenIn) {
-    //      route[0] = poolDataOut2;
-    //      route[1] = poolDataOut;
-    //      return (route, 2, "");
-    //    }
-
-    // if we can swap between largest LPs the route is ended
+    // if we can swap between largest pools the route is ended
     if (poolDataIn.tokenOut == poolDataOut2.tokenIn) {
       route[1] = poolDataOut2;
       route[2] = poolDataOut;
@@ -303,10 +290,8 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
 
     // --- BC for POOL2_out
 
-
     // token OUT pool can be paired with BC pool with token IN
     poolDataBC = blueChipsPools[tokenIn][poolDataOut2.tokenIn];
-    console.log("BC in Pout2", poolDataBC.pool, IERC20Metadata(tokenIn).symbol(), IERC20Metadata(poolDataOut2.tokenIn).symbol());
     if (poolDataBC.pool != address(0)) {
       poolDataBC.tokenIn = tokenIn;
       poolDataBC.tokenOut = poolDataOut2.tokenIn;
@@ -317,7 +302,6 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
     }
 
     poolDataBC = blueChipsPools[poolDataIn.tokenOut][poolDataOut2.tokenIn];
-    console.log("BC Pin Pout2", poolDataBC.pool, IERC20Metadata(poolDataIn.tokenOut).symbol(), IERC20Metadata(poolDataOut2.tokenIn).symbol());
     if (poolDataBC.pool != address(0)) {
       poolDataBC.tokenIn = poolDataIn.tokenOut;
       poolDataBC.tokenOut = poolDataOut2.tokenIn;
@@ -328,7 +312,6 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3 {
     }
 
     poolDataBC = blueChipsPools[poolDataIn2.tokenOut][poolDataOut2.tokenIn];
-    console.log("BC Pin2 Pout2", poolDataBC.pool, IERC20Metadata(poolDataIn2.tokenOut).symbol(), IERC20Metadata(poolDataOut2.tokenIn).symbol());
     if (poolDataBC.pool != address(0)) {
       poolDataBC.tokenIn = poolDataIn2.tokenOut;
       poolDataBC.tokenOut = poolDataOut2.tokenIn;

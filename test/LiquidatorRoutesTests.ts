@@ -4,15 +4,18 @@ import {expect} from "chai";
 import {DeployerUtils} from "../scripts/utils/DeployerUtils";
 import {TimeUtils} from "./TimeUtils";
 import {
-  ControllerMinimal, IERC20__factory, IERC20Metadata__factory, IUniswapV2Pair__factory,
+  ControllerMinimal,
+  IERC20__factory,
+  IERC20Metadata__factory,
   MockToken,
   TetuLiquidator,
-  UniswapV2Factory, UniswapV2Pair, UniswapV2Pair__factory,
+  UniswapV2Factory,
+  UniswapV2Pair,
+  UniswapV2Pair__factory,
   UniswapV2Router02
 } from "../typechain";
-import {Misc} from "../scripts/utils/Misc";
 import {parseUnits} from "ethers/lib/utils";
-import {address} from "hardhat/internal/core/config/config-validation";
+import {Misc} from "../scripts/utils/Misc";
 
 
 describe("Liquidator routes Tests", function () {
@@ -114,11 +117,6 @@ describe("Liquidator routes Tests", function () {
     await testRoute(liquidator, t4, t6, 1);
   });
 
-
-  it("error route: simple 1 route", async () => {
-    await errorRoute(liquidator, t4, t6, 'L: Not found LP for tokenIn');
-  });
-
   it("build route: POOLin + bc for POOLin", async () => {
     await addBC(liquidator, p12, bc1, bc2);
     await addPool(liquidator, p16, t6, bc1);
@@ -209,6 +207,36 @@ describe("Liquidator routes Tests", function () {
     await addPool(liquidator, p35, t5, t3);
     await addPool(liquidator, p56, t6, t5);
     await testRoute(liquidator, t7, t6, 3);
+  });
+
+  it("error route: in not found", async () => {
+    await errorRoute(liquidator, t4, t6, 'L: Not found pool for tokenIn');
+  });
+
+  it("error route: out not found", async () => {
+    await addPool(liquidator, p35, t4, t3);
+    await errorRoute(liquidator, t4, t6, 'L: Not found pool for tokenOut');
+  });
+
+  it("error route: in2 not found", async () => {
+    await addPool(liquidator, p35, t4, t3);
+    await addPool(liquidator, p16, t6, bc1);
+    await errorRoute(liquidator, t4, t6, 'L: Not found pool for tokenIn2');
+  });
+
+  it("error route: out2 not found", async () => {
+    await addPool(liquidator, p35, t4, t3);
+    await addPool(liquidator, p35, t3, t5);
+    await addPool(liquidator, p16, t6, bc1);
+    await errorRoute(liquidator, t4, t6, 'L: Not found pool for tokenOut2');
+  });
+
+  it("error route: route not found", async () => {
+    await addPool(liquidator, p35, t4, t3);
+    await addPool(liquidator, p35, t3, t5);
+    await addPool(liquidator, p16, t6, bc1);
+    await addPool(liquidator, p16, bc1, bc2);
+    await errorRoute(liquidator, t4, t6, 'L: Liquidation path not found');
   });
 
   describe("with some routes", function () {
@@ -396,9 +424,9 @@ async function testRoute(liquidator: TetuLiquidator, tokenIn: MockToken, tokenOu
   checkRoute(route.route, route.routeLength.toNumber(), tokenIn, tokenOut);
 }
 
-function checkRoute(route: ([string, number, string, string] & {
+function checkRoute(route: ([string, string, string, string] & {
                       pool: string;
-                      poolType: number;
+                      swapper: string;
                       tokenIn: string;
                       tokenOut: string;
                     })[],
@@ -414,7 +442,7 @@ async function addPool(liq: TetuLiquidator, pair: UniswapV2Pair, tokenIn: MockTo
   await liq.addLargestPools([
     {
       pool: pair.address,
-      poolType: 1,
+      swapper: Misc.ZERO_ADDRESS,
       tokenIn: tokenIn.address,
       tokenOut: tokenOut.address,
     }
@@ -425,7 +453,7 @@ async function addBC(liq: TetuLiquidator, pair: UniswapV2Pair, tokenIn: MockToke
   await liq.addBlueChipsPools([
     {
       pool: pair.address,
-      poolType: 1,
+      swapper: Misc.ZERO_ADDRESS,
       tokenIn: tokenIn.address,
       tokenOut: tokenOut.address,
     }

@@ -6,8 +6,8 @@ import './UniswapV2ERC20.sol';
 import './libraries/Math.sol';
 import './libraries/UQ112x112.sol';
 import "../../interfaces/IERC20.sol";
-import "../../integrations/interfaces/uniswap/IUniswapV2Factory.sol";
-import "../../integrations/interfaces/uniswap/IUniswapV2Callee.sol";
+import "./interfaces/IUniswapV2Factory.sol";
+import "./interfaces/IUniswapV2Callee.sol";
 
 contract UniswapV2Pair is UniswapV2ERC20 {
   using SafeMath  for uint;

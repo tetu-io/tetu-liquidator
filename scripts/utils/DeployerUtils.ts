@@ -10,7 +10,7 @@ import {
   ControllerMinimal,
   MockToken,
   ProxyControlled,
-  TetuLiquidator__factory, UniswapV2Factory, UniswapV2Router02
+  TetuLiquidator__factory, Uni2Swapper__factory, UniswapV2Factory, UniswapV2Router02
 } from "../../typechain";
 import {VerifyUtils} from "./VerifyUtils";
 
@@ -106,6 +106,13 @@ export class DeployerUtils {
     const liq = TetuLiquidator__factory.connect(proxy, signer);
     await liq.init(controller)
     return liq;
+  }
+
+  public static async deployUni2Swapper(signer: SignerWithAddress, controller: string) {
+    const proxy = await DeployerUtils.deployProxy(signer, 'Uni2Swapper')
+    const swapper = Uni2Swapper__factory.connect(proxy, signer);
+    await swapper.init(controller)
+    return swapper;
   }
 
   public static async deployUniswap(signer: SignerWithAddress) {

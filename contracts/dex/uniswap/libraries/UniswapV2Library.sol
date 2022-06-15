@@ -3,8 +3,8 @@
 pragma solidity 0.8.4;
 
 import "./SafeMath.sol";
-import "../../../integrations/interfaces/uniswap/IUniswapV2Pair.sol";
-import "../../../integrations/interfaces/uniswap/IUniswapV2Factory.sol";
+import "../interfaces/IUniswapV2Pair.sol";
+import "../interfaces/IUniswapV2Factory.sol";
 
 library UniswapV2Library {
   using SafeMath for uint;
