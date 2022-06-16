@@ -98,12 +98,17 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
   // *************************************************************
 
   /// @dev Return price of given tokenIn against tokenOut in decimals of tokenOut.
-  function getPrice(address tokenIn, address tokenOut) external view override returns (uint) {
+  function getPrice(address tokenIn, address tokenOut, uint amount) external view override returns (uint) {
     (PoolData[] memory route,) = buildRoute(tokenIn, tokenOut);
     if (route.length == 0) {
       return 0;
     }
-    uint price = 10 ** IERC20Metadata(tokenIn).decimals();
+    uint price;
+    if (amount == 0) {
+      price = 10 ** IERC20Metadata(tokenIn).decimals();
+    } else {
+      price = amount;
+    }
     for (uint i; i < route.length; i++) {
       PoolData memory data = route[i];
       price = ISwapper(data.swapper).getPrice(data.pool, data.tokenIn, data.tokenOut, price);
@@ -112,8 +117,13 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
   }
 
   /// @dev Return price the first poolData.tokenIn against the last poolData.tokenOut in decimals of tokenOut.
-  function getPriceForRoute(PoolData[] memory route) external view override returns (uint) {
-    uint price = 10 ** IERC20Metadata(route[0].tokenIn).decimals();
+  function getPriceForRoute(PoolData[] memory route, uint amount) external view override returns (uint) {
+    uint price;
+    if (amount == 0) {
+      price = 10 ** IERC20Metadata(route[0].tokenIn).decimals();
+    } else {
+      price = amount;
+    }
     for (uint i; i < route.length; i++) {
       PoolData memory data = route[i];
       price = ISwapper(data.swapper).getPrice(data.pool, data.tokenIn, data.tokenOut, price);
@@ -131,6 +141,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
   //                        LIQUIDATE
   // *************************************************************
 
+  /// @dev Sell tokenIn for tokenOut. Assume approve on this contract exist.
   function liquidate(
     address tokenIn,
     address tokenOut,

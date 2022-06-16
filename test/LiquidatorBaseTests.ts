@@ -174,7 +174,7 @@ describe("Liquidator base Tests", function () {
   });
 
   it("getPrice no route zero price test", async () => {
-    expect(await liquidator.getPrice(tetu.address, usdc.address)).eq(0);
+    expect(await liquidator.getPrice(tetu.address, usdc.address, 0)).eq(0);
   });
 
   it("liquidate univ2 with complex route test", async () => {
@@ -225,18 +225,20 @@ describe("Liquidator base Tests", function () {
     }], false);
 
 
-    const priceTetuUsdc = await liquidator.getPrice(tetu.address, usdc.address);
-    const priceTetuMatic = await liquidator.getPrice(tetu.address, matic.address);
-    const priceUsdcMatic = await liquidator.getPrice(usdc.address, matic.address);
-    const priceMaticUsdc = await liquidator.getPrice(matic.address, usdc.address);
+    const priceTetuUsdc = await liquidator.getPrice(tetu.address, usdc.address, parseUnits('1'));
+    const priceTetuMatic = await liquidator.getPrice(tetu.address, matic.address, 0);
+    const priceUsdcMatic = await liquidator.getPrice(usdc.address, matic.address, 0);
+    const priceMaticUsdc = await liquidator.getPrice(matic.address, usdc.address, 0);
     expect(priceTetuUsdc).eq(parseUnits('0.5', 6));
     expect(priceTetuMatic).eq(parseUnits('1'));
     expect(priceUsdcMatic).eq(parseUnits('2'));
     expect(priceMaticUsdc).eq(parseUnits('0.5', 6));
 
     const route = await liquidator.buildRoute(tetu.address, usdc.address);
-    const priceTetuUsdcFromRoute = await liquidator.getPriceForRoute(route.route);
+    const priceTetuUsdcFromRoute = await liquidator.getPriceForRoute(route.route, 0);
+    const priceTetuUsdcFromRoute2 = await liquidator.getPriceForRoute(route.route, parseUnits('1'));
     expect(priceTetuUsdc).eq(priceTetuUsdcFromRoute);
+    expect(priceTetuUsdc).eq(priceTetuUsdcFromRoute2);
   });
 
 });

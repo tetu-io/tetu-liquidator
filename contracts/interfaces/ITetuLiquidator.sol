@@ -11,9 +11,9 @@ interface ITetuLiquidator {
     address tokenOut;
   }
 
-  function getPrice(address tokenIn, address tokenOut) external view returns (uint);
+  function getPrice(address tokenIn, address tokenOut, uint amount) external view returns (uint);
 
-  function getPriceForRoute(PoolData[] memory route) external view returns (uint);
+  function getPriceForRoute(PoolData[] memory route, uint amount) external view returns (uint);
 
   function isRouteExist(address tokenIn, address tokenOut) external view returns (bool);
 
