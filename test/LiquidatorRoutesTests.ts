@@ -259,27 +259,27 @@ describe("Liquidator routes Tests", function () {
     it("build route for bc1 => bc2", async () => {
       const route = await liquidator.buildRoute(bc1.address, bc2.address);
       expect(route.errorMessage).eq('');
-      expect(route.routeLength).eq(1);
+      expect(route.route.length).eq(1);
       expect(route.route[0].pool).eq(p12.address);
       expect(route.route[0].tokenIn).eq(bc1.address);
       expect(route.route[0].tokenOut).eq(bc2.address);
-      checkRoute(route.route, route.routeLength.toNumber(), bc1, bc2);
+      checkRoute(route.route, bc1, bc2);
     });
 
     it("build route bc1 => t3", async () => {
       const route = await liquidator.buildRoute(bc1.address, t3.address);
       expect(route.errorMessage).eq('');
-      expect(route.routeLength).eq(1);
+      expect(route.route.length).eq(1);
       expect(route.route[0].pool).eq(p13.address);
       expect(route.route[0].tokenIn).eq(bc1.address);
       expect(route.route[0].tokenOut).eq(t3.address);
-      checkRoute(route.route, route.routeLength.toNumber(), bc1, t3);
+      checkRoute(route.route, bc1, t3);
     });
 
     it("build route bc2 => t3", async () => {
       const route = await liquidator.buildRoute(bc2.address, t3.address);
       expect(route.errorMessage).eq('');
-      expect(route.routeLength).eq(2);
+      expect(route.route.length).eq(2);
 
       expect(route.route[0].pool).eq(p12.address);
       expect(route.route[0].tokenIn).eq(bc2.address);
@@ -288,37 +288,37 @@ describe("Liquidator routes Tests", function () {
       expect(route.route[1].pool).eq(p13.address);
       expect(route.route[1].tokenIn).eq(bc1.address);
       expect(route.route[1].tokenOut).eq(t3.address);
-      checkRoute(route.route, route.routeLength.toNumber(), bc2, t3);
+      checkRoute(route.route, bc2, t3);
     });
 
     it("build route t4 => t6", async () => {
       const route = await liquidator.buildRoute(t4.address, t6.address);
       expect(route.errorMessage).eq('');
-      expect(route.routeLength).eq(1);
+      expect(route.route.length).eq(1);
 
       expect(route.route[0].pool).eq(p46.address);
       expect(route.route[0].tokenIn).eq(t4.address);
       expect(route.route[0].tokenOut).eq(t6.address);
 
-      checkRoute(route.route, route.routeLength.toNumber(), t4, t6);
+      checkRoute(route.route, t4, t6);
     });
 
     it("build route bc1 => t6", async () => {
       const route = await liquidator.buildRoute(bc1.address, t6.address);
       expect(route.errorMessage).eq('');
-      expect(route.routeLength).eq(1);
+      expect(route.route.length).eq(1);
 
       expect(route.route[0].pool).eq(p16.address);
       expect(route.route[0].tokenIn).eq(bc1.address);
       expect(route.route[0].tokenOut).eq(t6.address);
 
-      checkRoute(route.route, route.routeLength.toNumber(), bc1, t6);
+      checkRoute(route.route, bc1, t6);
     });
 
     it("build route t3 => t6", async () => {
       const route = await liquidator.buildRoute(t3.address, t6.address);
       expect(route.errorMessage).eq('');
-      expect(route.routeLength).eq(2);
+      expect(route.route.length).eq(2);
 
       expect(route.route[0].pool).eq(p13.address);
       expect(route.route[0].tokenIn).eq(t3.address);
@@ -328,13 +328,13 @@ describe("Liquidator routes Tests", function () {
       expect(route.route[1].tokenIn).eq(bc1.address);
       expect(route.route[1].tokenOut).eq(t6.address);
 
-      checkRoute(route.route, route.routeLength.toNumber(), t3, t6);
+      checkRoute(route.route, t3, t6);
     });
 
     it("build route bc2 => t6", async () => {
       const route = await liquidator.buildRoute(bc2.address, t6.address);
       expect(route.errorMessage).eq('');
-      expect(route.routeLength).eq(2);
+      expect(route.route.length).eq(2);
 
       expect(route.route[0].pool).eq(p12.address);
       expect(route.route[0].tokenIn).eq(bc2.address);
@@ -344,13 +344,13 @@ describe("Liquidator routes Tests", function () {
       expect(route.route[1].tokenIn).eq(bc1.address);
       expect(route.route[1].tokenOut).eq(t6.address);
 
-      checkRoute(route.route, route.routeLength.toNumber(), bc2, t6);
+      checkRoute(route.route, bc2, t6);
     });
 
     it("build route t6 => bc2", async () => {
       const route = await liquidator.buildRoute(t6.address, bc2.address);
       expect(route.errorMessage).eq('');
-      expect(route.routeLength).eq(2);
+      expect(route.route.length).eq(2);
 
       expect(route.route[0].pool).eq(p16.address);
       expect(route.route[0].tokenIn).eq(t6.address);
@@ -360,13 +360,13 @@ describe("Liquidator routes Tests", function () {
       expect(route.route[1].tokenIn).eq(bc1.address);
       expect(route.route[1].tokenOut).eq(bc2.address);
 
-      checkRoute(route.route, route.routeLength.toNumber(), t6, bc2);
+      checkRoute(route.route, t6, bc2);
     });
 
     it("build route t5 => bc2", async () => {
       const route = await liquidator.buildRoute(t5.address, bc2.address);
       expect(route.errorMessage).eq('');
-      expect(route.routeLength).eq(3);
+      expect(route.route.length).eq(3);
 
       expect(route.route[0].pool).eq(p56.address);
       expect(route.route[0].tokenIn).eq(t5.address);
@@ -380,7 +380,7 @@ describe("Liquidator routes Tests", function () {
       expect(route.route[2].tokenIn).eq(bc1.address);
       expect(route.route[2].tokenOut).eq(bc2.address);
 
-      checkRoute(route.route, route.routeLength.toNumber(), t5, bc2);
+      checkRoute(route.route, t5, bc2);
     });
 
     it("build route t7 => t4", async () => {
@@ -403,7 +403,7 @@ describe("Liquidator routes Tests", function () {
 async function errorRoute(liquidator: TetuLiquidator, tokenIn: MockToken, tokenOut: MockToken, msg: string) {
   const route = await liquidator.buildRoute(tokenIn.address, tokenOut.address);
   expect(route.errorMessage).eq(msg);
-  expect(route.routeLength).eq(0);
+  expect(route.route.length).eq(0);
 }
 
 async function testRoute(liquidator: TetuLiquidator, tokenIn: MockToken, tokenOut: MockToken, size: number) {
@@ -420,8 +420,8 @@ async function testRoute(liquidator: TetuLiquidator, tokenIn: MockToken, tokenOu
   }
 
   expect(route.errorMessage).eq('');
-  expect(route.routeLength).eq(size);
-  checkRoute(route.route, route.routeLength.toNumber(), tokenIn, tokenOut);
+  expect(route.route.length).eq(size);
+  checkRoute(route.route, tokenIn, tokenOut);
 }
 
 function checkRoute(route: ([string, string, string, string] & {
@@ -430,12 +430,10 @@ function checkRoute(route: ([string, string, string, string] & {
                       tokenIn: string;
                       tokenOut: string;
                     })[],
-                    length: number,
                     tokenIn: MockToken,
                     tokenOut: MockToken) {
-  expect(route.length).above(0);
   expect(route[0].tokenIn).eq(tokenIn.address);
-  expect(route[length - 1].tokenOut).eq(tokenOut.address);
+  expect(route[route.length - 1].tokenOut).eq(tokenOut.address);
 }
 
 async function addPool(liq: TetuLiquidator, pair: UniswapV2Pair, tokenIn: MockToken, tokenOut: MockToken) {

@@ -65,6 +65,20 @@ contract Uni2Swapper is ControllableV3, ISwapper {
   }
 
   // *************************************************************
+  //                        PRICE
+  // *************************************************************
+
+  function getPrice(
+    address pool,
+    address tokenIn,
+    address tokenOut,
+    uint amount
+  ) external view override returns (uint) {
+    (uint reserveIn, uint reserveOut) = _getReserves(IUniswapV2Pair(pool), tokenIn, tokenOut);
+    return getAmountOutMax(reserveIn, reserveOut, amount);
+  }
+
+  // *************************************************************
   //                        SWAP
   // *************************************************************
 

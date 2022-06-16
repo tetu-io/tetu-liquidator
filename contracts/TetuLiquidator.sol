@@ -94,6 +94,40 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
   }
 
   // *************************************************************
+  //                        VIEWS
+  // *************************************************************
+
+  /// @dev Return price of given tokenIn against tokenOut in decimals of tokenOut.
+  function getPrice(address tokenIn, address tokenOut) external view override returns (uint) {
+    (PoolData[] memory route,) = buildRoute(tokenIn, tokenOut);
+    if (route.length == 0) {
+      return 0;
+    }
+    uint price = 10 ** IERC20Metadata(tokenIn).decimals();
+    for (uint i; i < route.length; i++) {
+      PoolData memory data = route[i];
+      price = ISwapper(data.swapper).getPrice(data.pool, data.tokenIn, data.tokenOut, price);
+    }
+    return price;
+  }
+
+  /// @dev Return price the first poolData.tokenIn against the last poolData.tokenOut in decimals of tokenOut.
+  function getPriceForRoute(PoolData[] memory route) external view override returns (uint) {
+    uint price = 10 ** IERC20Metadata(route[0].tokenIn).decimals();
+    for (uint i; i < route.length; i++) {
+      PoolData memory data = route[i];
+      price = ISwapper(data.swapper).getPrice(data.pool, data.tokenIn, data.tokenOut, price);
+    }
+    return price;
+  }
+
+  /// @dev Check possibility liquidate tokenIn for tokenOut.
+  function isRouteExist(address tokenIn, address tokenOut) external view override returns (bool) {
+    (PoolData[] memory route,) = buildRoute(tokenIn, tokenOut);
+    return route.length != 0;
+  }
+
+  // *************************************************************
   //                        LIQUIDATE
   // *************************************************************
 
@@ -104,32 +138,30 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
     uint slippage
   ) external override {
 
-    (PoolData[] memory route, uint routeLength, string memory errorMessage) = buildRoute(tokenIn, tokenOut);
-    if (routeLength == 0) {
+    (PoolData[] memory route, string memory errorMessage) = buildRoute(tokenIn, tokenOut);
+    if (route.length == 0) {
       revert(errorMessage);
     }
 
-    _liquidate(route, routeLength, amount, slippage);
+    _liquidate(route, amount, slippage);
   }
 
   function liquidateWithRoute(
     PoolData[] memory route,
-    uint routeLength,
     uint amount,
     uint slippage
   ) external override {
-    _liquidate(route, routeLength, amount, slippage);
+    _liquidate(route, amount, slippage);
   }
 
   function _liquidate(
     PoolData[] memory route,
-    uint routeLength,
     uint amount,
     uint slippage
   ) internal {
-    require(routeLength > 0, "ZERO_LENGTH");
+    require(route.length > 0, "ZERO_LENGTH");
 
-    for (uint i; i < routeLength; i++) {
+    for (uint i; i < route.length; i++) {
       PoolData memory data = route[i];
 
       // if it is the first step send tokens to the swapper from the current contract
@@ -138,7 +170,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
       }
       address recipient;
       // if it is not the last step of the route send to the next swapper
-      if (i != routeLength - 1) {
+      if (i != route.length - 1) {
         recipient = route[i + 1].swapper;
       } else {
         // if it is the last step need to send to the sender
@@ -148,30 +180,21 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
       ISwapper(data.swapper).swap(data.pool, data.tokenIn, data.tokenOut, recipient, slippage);
     }
 
-    emit Liquidated(route[0].tokenIn, route[routeLength - 1].tokenOut, amount);
+    emit Liquidated(route[0].tokenIn, route[route.length - 1].tokenOut, amount);
   }
 
   // *************************************************************
   //                        ROUTE
   // *************************************************************
 
-  /// @dev Check possibility liquidate tokenIn for tokenOut.
-  function isRouteExist(address tokenIn, address tokenOut) external view override returns (bool) {
-    (, uint length,) = buildRoute(tokenIn, tokenOut);
-    return length != 0;
-  }
-
   /// @dev Build route for liquidation. No reverts inside.
-  /// @return route Array of pools for liquidate tokenIn to tokenOut.
-  ///               Can have higher size than length. Ignore elements higher than `routeLength`.
-  /// @return routeLength Size of the route. Zero value indicates that the route was not found.
+  /// @return route Array of pools for liquidate tokenIn to tokenOut. Zero length indicate an error.
   /// @return errorMessage Possible reason why the route was not found. Empty for success routes.
   function buildRoute(
     address tokenIn,
     address tokenOut
   ) public view override returns (
     PoolData[] memory route,
-    uint routeLength,
     string memory errorMessage
   )  {
     route = new PoolData[](ROUTE_LENGTH_MAX);
@@ -184,7 +207,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
       poolDataBC.tokenIn = tokenIn;
       poolDataBC.tokenOut = tokenOut;
       route[0] = poolDataBC;
-      return (route, 1, "");
+      return (_cutRoute(route, 1), "");
     }
 
     // --- POOL for in
@@ -192,13 +215,13 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
     // find the best Pool for token IN
     PoolData memory poolDataIn = largestPools[tokenIn];
     if (poolDataIn.pool == address(0)) {
-      return (route, 0, "L: Not found pool for tokenIn");
+      return (_cutRoute(route, 0), "L: Not found pool for tokenIn");
     }
 
     route[0] = poolDataIn;
     // if the best Pool for token IN a pair with token OUT token we complete the route
     if (poolDataIn.tokenOut == tokenOut) {
-      return (route, 1, "");
+      return (_cutRoute(route, 1), "");
     }
 
     // --- BC for POOL_in
@@ -209,7 +232,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
       poolDataBC.tokenIn = poolDataIn.tokenOut;
       poolDataBC.tokenOut = tokenOut;
       route[1] = poolDataBC;
-      return (route, 2, "");
+      return (_cutRoute(route, 2), "");
     }
 
     // --- POOL for out
@@ -218,7 +241,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
     PoolData memory poolDataOut = largestPools[tokenOut];
 
     if (poolDataOut.pool == address(0)) {
-      return (route, 0, "L: Not found pool for tokenOut");
+      return (_cutRoute(route, 0), "L: Not found pool for tokenOut");
     }
 
     // need to swap directions for tokenOut pool
@@ -227,13 +250,13 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
     // if the largest pool for tokenOut contains tokenIn it is the best way
     if (tokenIn == poolDataOut.tokenIn) {
       route[0] = poolDataOut;
-      return (route, 1, "");
+      return (_cutRoute(route, 1), "");
     }
 
     // if we can swap between largest pools the route is ended
     if (poolDataIn.tokenOut == poolDataOut.tokenIn) {
       route[1] = poolDataOut;
-      return (route, 2, "");
+      return (_cutRoute(route, 2), "");
     }
 
     // --- BC for POOL_out
@@ -245,7 +268,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
       poolDataBC.tokenOut = poolDataOut.tokenIn;
       route[1] = poolDataBC;
       route[2] = poolDataOut;
-      return (route, 3, "");
+      return (_cutRoute(route, 3), "");
     }
 
     // ------------------------------------------------------------------------
@@ -258,17 +281,17 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
 
     PoolData memory poolDataIn2 = largestPools[poolDataIn.tokenOut];
     if (poolDataIn2.pool == address(0)) {
-      return (route, 0, "L: Not found pool for tokenIn2");
+      return (_cutRoute(route, 0), "L: Not found pool for tokenIn2");
     }
 
     route[1] = poolDataIn2;
     if (poolDataIn2.tokenOut == tokenOut) {
-      return (route, 2, "");
+      return (_cutRoute(route, 2), "");
     }
 
     if (poolDataIn2.tokenOut == poolDataOut.tokenIn) {
       route[2] = poolDataOut;
-      return (route, 3, "");
+      return (_cutRoute(route, 3), "");
     }
 
     // --- BC for POOL2_in
@@ -278,7 +301,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
       poolDataBC.tokenIn = poolDataIn2.tokenOut;
       poolDataBC.tokenOut = tokenOut;
       route[2] = poolDataBC;
-      return (route, 3, "");
+      return (_cutRoute(route, 3), "");
     }
 
     // --- POOL2 for out
@@ -286,7 +309,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
     // find the largest pool for token out
     PoolData memory poolDataOut2 = largestPools[poolDataOut.tokenIn];
     if (poolDataOut2.pool == address(0)) {
-      return (route, 0, "L: Not found pool for tokenOut2");
+      return (_cutRoute(route, 0), "L: Not found pool for tokenOut2");
     }
 
     // need to swap directions for tokenOut2 pool
@@ -296,13 +319,13 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
     if (poolDataIn.tokenOut == poolDataOut2.tokenIn) {
       route[1] = poolDataOut2;
       route[2] = poolDataOut;
-      return (route, 3, "");
+      return (_cutRoute(route, 3), "");
     }
 
     if (poolDataIn2.tokenOut == poolDataOut2.tokenIn) {
       route[2] = poolDataOut2;
       route[3] = poolDataOut;
-      return (route, 4, "");
+      return (_cutRoute(route, 4), "");
     }
 
     // --- BC for POOL2_out
@@ -315,7 +338,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
       route[0] = poolDataBC;
       route[1] = poolDataOut2;
       route[2] = poolDataOut;
-      return (route, 3, "");
+      return (_cutRoute(route, 3), "");
     }
 
     poolDataBC = blueChipsPools[poolDataIn.tokenOut][poolDataOut2.tokenIn];
@@ -325,7 +348,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
       route[1] = poolDataBC;
       route[2] = poolDataOut2;
       route[3] = poolDataOut;
-      return (route, 4, "");
+      return (_cutRoute(route, 4), "");
     }
 
     poolDataBC = blueChipsPools[poolDataIn2.tokenOut][poolDataOut2.tokenIn];
@@ -335,14 +358,22 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
       route[2] = poolDataBC;
       route[3] = poolDataOut2;
       route[4] = poolDataOut;
-      return (route, 5, "");
+      return (_cutRoute(route, 5), "");
     }
 
     // We are not handling other cases such as:
     // - If a token has liquidity with specific token
     //   and this token also has liquidity only with specific token.
     //   This case never exist but could be implemented if requires.
-    return (route, 0, "L: Liquidation path not found");
+    return (_cutRoute(route, 0), "L: Liquidation path not found");
+  }
+
+  function _cutRoute(PoolData[] memory route, uint length) internal pure returns (PoolData[] memory) {
+    PoolData[] memory result = new PoolData[](length);
+    for (uint i; i < length; ++i) {
+      result[i] = route[i];
+    }
+    return result;
   }
 
 }

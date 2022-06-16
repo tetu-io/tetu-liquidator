@@ -145,7 +145,7 @@ describe("Liquidator base Tests", function () {
     await tetu.approve(liquidator.address, Misc.MAX_UINT);
     await liquidator.liquidate(tetu.address, usdc.address, parseUnits('0.1'), 10_000);
     const usdcBalAfter = await usdc.balanceOf(signer.address);
-    expect(usdcBalAfter.sub(usdcBal)).eq(90661);
+    expect(usdcBalAfter.sub(usdcBal)).eq(47482);
   });
 
   it("liquidate univ2 with predefined route test", async () => {
@@ -160,17 +160,21 @@ describe("Liquidator base Tests", function () {
     }], false);
     await tetu.approve(liquidator.address, Misc.MAX_UINT);
     const data = await liquidator.buildRoute(tetu.address, usdc.address);
-    await liquidator.liquidateWithRoute(data.route, data.routeLength, parseUnits('0.1'), 10_000);
+    await liquidator.liquidateWithRoute(data.route, parseUnits('0.1'), 10_000);
     const usdcBalAfter = await usdc.balanceOf(signer.address);
-    expect(usdcBalAfter.sub(usdcBal)).eq(90661);
+    expect(usdcBalAfter.sub(usdcBal)).eq(47482);
   });
 
   it("liquidate zero route revert", async () => {
-    await expect(liquidator.liquidateWithRoute([], 0, parseUnits('0.1'), 10_000)).revertedWith('ZERO_LENGTH');
+    await expect(liquidator.liquidateWithRoute([], parseUnits('0.1'), 10_000)).revertedWith('ZERO_LENGTH');
   });
 
   it("liquidate no route revert", async () => {
     await expect(liquidator.liquidate(tetu.address, usdc.address, parseUnits('0.1'), 10_000)).revertedWith('L: Not found pool for tokenIn');
+  });
+
+  it("getPrice no route zero price test", async () => {
+    expect(await liquidator.getPrice(tetu.address, usdc.address)).eq(0);
   });
 
   it("liquidate univ2 with complex route test", async () => {
@@ -201,6 +205,40 @@ describe("Liquidator base Tests", function () {
     expect(balAfter.sub(bal)).above(parseUnits('0.08'));
   });
 
+  it("get price univ2 with complex route test", async () => {
+    const matic = await DeployerUtils.deployMockToken(signer, 'WMATIC');
+    const maticUsdc = await createPair(signer, factory, usdc.address, matic.address);
+    const swapper = await DeployerUtils.deployUni2Swapper(signer, controller.address);
+
+    await liquidator.addLargestPools([{
+      pool: tetuUsdc.address,
+      swapper: swapper.address,
+      tokenIn: tetu.address,
+      tokenOut: usdc.address,
+    }], false);
+
+    await liquidator.addBlueChipsPools([{
+      pool: maticUsdc.address,
+      swapper: swapper.address,
+      tokenIn: matic.address,
+      tokenOut: usdc.address,
+    }], false);
+
+
+    const priceTetuUsdc = await liquidator.getPrice(tetu.address, usdc.address);
+    const priceTetuMatic = await liquidator.getPrice(tetu.address, matic.address);
+    const priceUsdcMatic = await liquidator.getPrice(usdc.address, matic.address);
+    const priceMaticUsdc = await liquidator.getPrice(matic.address, usdc.address);
+    expect(priceTetuUsdc).eq(parseUnits('0.5', 6));
+    expect(priceTetuMatic).eq(parseUnits('1'));
+    expect(priceUsdcMatic).eq(parseUnits('2'));
+    expect(priceMaticUsdc).eq(parseUnits('0.5', 6));
+
+    const route = await liquidator.buildRoute(tetu.address, usdc.address);
+    const priceTetuUsdcFromRoute = await liquidator.getPriceForRoute(route.route);
+    expect(priceTetuUsdc).eq(priceTetuUsdcFromRoute);
+  });
+
 });
 
 
@@ -209,7 +247,7 @@ async function createPair(signer: SignerWithAddress, factory: UniswapV2Factory, 
   const pairAdr = await factory.getPair(token1, token2);
   const pair = UniswapV2Pair__factory.connect(pairAdr, signer);
   await IERC20__factory.connect(token1, signer).transfer(pairAdr, parseUnits('1', await IERC20Metadata__factory.connect(token1, signer).decimals()))
-  await IERC20__factory.connect(token2, signer).transfer(pairAdr, parseUnits('1', await IERC20Metadata__factory.connect(token2, signer).decimals()))
+  await IERC20__factory.connect(token2, signer).transfer(pairAdr, parseUnits('2', await IERC20Metadata__factory.connect(token2, signer).decimals()))
   await pair.mint(signer.address);
   return pair;
 }

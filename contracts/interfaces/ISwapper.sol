@@ -12,4 +12,11 @@ interface ISwapper {
     uint slippage
   ) external;
 
+  function getPrice(
+    address pool,
+    address tokenIn,
+    address tokenOut,
+    uint amount
+  ) external view returns (uint);
+
 }

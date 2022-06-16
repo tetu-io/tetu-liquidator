@@ -11,6 +11,17 @@ interface ITetuLiquidator {
     address tokenOut;
   }
 
+  function getPrice(address tokenIn, address tokenOut) external view returns (uint);
+
+  function getPriceForRoute(PoolData[] memory route) external view returns (uint);
+
+  function isRouteExist(address tokenIn, address tokenOut) external view returns (bool);
+
+  function buildRoute(
+    address tokenIn,
+    address tokenOut
+  ) external view returns (PoolData[] memory route, string memory errorMessage);
+
   function liquidate(
     address tokenIn,
     address tokenOut,
@@ -20,16 +31,9 @@ interface ITetuLiquidator {
 
   function liquidateWithRoute(
     PoolData[] memory route,
-    uint routeLength,
     uint amount,
     uint slippage
   ) external;
 
-  function isRouteExist(address tokenIn, address tokenOut) external view returns (bool);
-
-  function buildRoute(
-    address tokenIn,
-    address tokenOut
-  ) external view returns (PoolData[] memory route, uint routeLength, string memory errorMessage);
 
 }
