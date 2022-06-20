@@ -58,7 +58,7 @@ export class DeployerUtils {
         signer
       )) as T;
     }
-    let gas = 19_000_000;
+    let gas = 5_000_000;
     if (hre.network.name === 'hardhat') {
       gas = 999_999_999;
     }

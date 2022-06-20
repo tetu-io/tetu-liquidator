@@ -33,8 +33,9 @@ const argv = require('yargs/yargs')()
       type: "string",
       default: ''
     },
-    infuraKey: {
+    arbtestRpcUrl: {
       type: "string",
+      default: ''
     },
     networkScanKey: {
       type: "string",
@@ -81,6 +82,7 @@ export default {
           argv.hardhatChainId === 1 ? argv.ethRpcUrl :
             argv.hardhatChainId === 137 ? argv.maticRpcUrl :
               argv.hardhatChainId === 250 ? argv.ftmRpcUrl :
+              argv.hardhatChainId === 421611 ? argv.arbtestRpcUrl :
                 undefined,
         blockNumber:
           argv.hardhatChainId === 1 ? argv.ethForkBlock !== 0 ? argv.ethForkBlock : undefined :
@@ -118,23 +120,10 @@ export default {
       chainId: 1,
       accounts: [argv.privateKey],
     },
-    mumbai: {
-      url: "https://polygon-mumbai.infura.io/v3/" + argv.infuraKey,
-      chainId: 80001,
-      gasPrice: 1,
-      accounts: [argv.privateKey],
-    },
-    ropsten: {
-      url: "https://ropsten.infura.io/v3/" + argv.infuraKey,
-      chainId: 3,
-      gas: 8_000_000,
-      accounts: [argv.privateKey],
-    },
-    rinkeby: {
-      url: "https://rinkeby.infura.io/v3/" + argv.infuraKey,
-      chainId: 4,
-      gas: 8_000_000,
-      gasPrice: 1_100_000_000,
+    arbtest: {
+      url: argv.arbtestRpcUrl || '',
+      chainId: 421611,
+      // gas: 50_000_000_000,
       accounts: [argv.privateKey],
     },
   },
@@ -143,7 +132,8 @@ export default {
     apiKey: {
       mainnet: argv.networkScanKey,
       polygon: argv.networkScanKeyMatic || argv.networkScanKey,
-      opera: argv.networkScanKeyFtm || argv.networkScanKey
+      opera: argv.networkScanKeyFtm || argv.networkScanKey,
+      arbitrumTestnet: argv.networkScanKeyArbitrum || argv.networkScanKey
     },
   },
   solidity: {
