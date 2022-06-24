@@ -11,12 +11,15 @@ import {
 import {parseUnits} from "ethers/lib/utils";
 import {Misc} from "../utils/Misc";
 import {writeFileSync} from "fs";
+import {RunHelper} from "../utils/RunHelper";
+import {TimeUtils} from "../../test/TimeUtils";
 
-const CONTROLLER = '0x286c02C93f3CF48BB759A93756779A1C78bCF833';
-const TETU = '0x6678814c273d5088114B6E40cC49C8DB04F9bC29';
+const CONTROLLER = '0x81367059892aa1D8503a79a0Af9254DD0a09afBF';
+const TETU = '0x00379dD90b2A337C4652E286e4FBceadef940a21';
 
 async function main() {
   const signer = (await ethers.getSigners())[0];
+  // const signer = await Misc.impersonate('0xbbbbb8C4364eC2ce52c59D2Ed3E56F307E529a94');
   const usdc = await DeployerUtils.deployMockToken(signer, 'USDC');
   const btc = await DeployerUtils.deployMockToken(signer, 'BTC');
 
@@ -28,7 +31,7 @@ async function main() {
   const factory = uniData.factory;
   const weth = uniData.netToken;
 
-  await uniSwapper.setFee(factory.address, 300);
+  await RunHelper.runAndWait(() => uniSwapper.setFee(factory.address, 300, {gasLimit: 8_000_000}));
 
   const usdcBtc = await createPair(signer, factory, usdc.address, btc.address);
   const usdcWeth = await createPair(signer, factory, usdc.address, weth);
@@ -40,38 +43,46 @@ async function main() {
   await addBC(liquidator, btcWeth, btc.address, weth, uniSwapper.address);
   await addPool(liquidator, usdcTetu, usdc.address, TETU, uniSwapper.address);
 
+  writeFileSync('tmp/deployed/usdc.txt', usdc.address, 'utf8');
+  writeFileSync('tmp/deployed/btc.txt', btc.address, 'utf8');
+  writeFileSync('tmp/deployed/weth.txt', weth, 'utf8');
   writeFileSync('tmp/deployed/liquidator.txt', liquidator.address, 'utf8');
 }
 
 async function addPool(liq: TetuLiquidator, pair: UniswapV2Pair, tokenIn: string, tokenOut: string, swapper: string) {
-  await liq.addLargestPools([
+  await RunHelper.runAndWait(() => liq.addLargestPools([
     {
       pool: pair.address,
       swapper: Misc.ZERO_ADDRESS,
       tokenIn,
       tokenOut,
     }
-  ], false)
+  ], false, {gasLimit: 8_000_000}))
 }
 
 async function addBC(liq: TetuLiquidator, pair: UniswapV2Pair, tokenIn: string, tokenOut: string, swapper: string) {
-  await liq.addBlueChipsPools([
+  await RunHelper.runAndWait(() => liq.addBlueChipsPools([
     {
       pool: pair.address,
       swapper: Misc.ZERO_ADDRESS,
       tokenIn,
       tokenOut,
     }
-  ], false)
+  ], false, {gasLimit: 8_000_000}))
 }
 
 async function createPair(signer: SignerWithAddress, factory: UniswapV2Factory, token1: string, token2: string) {
-  await factory.createPair(token1, token2);
+  console.log('create pair')
+  await RunHelper.runAndWait(() => factory.createPair(token1, token2, {gasLimit: 8_000_000}));
+  await Misc.wait(1)
   const pairAdr = await factory.getPair(token1, token2);
+  console.log('pair', pairAdr)
   const pair = UniswapV2Pair__factory.connect(pairAdr, signer);
-  await IERC20__factory.connect(token1, signer).transfer(pairAdr, parseUnits('1', await IERC20Metadata__factory.connect(token1, signer).decimals()))
-  await IERC20__factory.connect(token2, signer).transfer(pairAdr, parseUnits('2', await IERC20Metadata__factory.connect(token2, signer).decimals()))
-  await pair.mint(signer.address);
+  const dec0 = await IERC20Metadata__factory.connect(token1, signer).decimals()
+  const dec1 = await IERC20Metadata__factory.connect(token2, signer).decimals()
+  await RunHelper.runAndWait(() => IERC20__factory.connect(token1, signer).transfer(pairAdr, parseUnits('1', dec0), {gasLimit: 8_000_000}))
+  await RunHelper.runAndWait(() => IERC20__factory.connect(token2, signer).transfer(pairAdr, parseUnits('2', dec1), {gasLimit: 8_000_000}))
+  await RunHelper.runAndWait(() => pair.mint(signer.address, {gasLimit: 8_000_000}));
   return pair;
 }
 
