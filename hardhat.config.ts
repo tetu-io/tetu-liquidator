@@ -66,6 +66,11 @@ const argv = require('yargs/yargs')()
       type: "string",
       default: 'https://api.avax-test.network/ext/bc/C/rpc'
     },
+    avaxRpcUrl: {
+    avaxRpcUrl: {
+      type: "string",
+      default: 'https://api.avax.network/ext/bc/C/rpc'
+    },
   }).argv;
 
 
@@ -135,6 +140,12 @@ export default {
       url: argv.fujiRpcUrl || '',
       chainId: 43113,
       gasLimit: 10_000_000,
+      accounts: [argv.privateKey],
+    },
+    avax: {
+      url: argv.avaxRpcUrl || '',
+      chainId: 43114,
+      // gas: 50_000_000_000,
       accounts: [argv.privateKey],
     },
   },

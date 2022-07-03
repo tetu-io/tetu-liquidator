@@ -4,24 +4,25 @@ import {UniswapUtils} from "../../test/UniswapUtils";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {
   IERC20__factory,
-  IERC20Metadata__factory, MockToken, TetuLiquidator,
-  UniswapV2Factory, UniswapV2Pair,
+  IERC20Metadata__factory,
+  TetuLiquidator,
+  UniswapV2Factory,
+  UniswapV2Pair,
   UniswapV2Pair__factory
 } from "../../typechain";
 import {parseUnits} from "ethers/lib/utils";
 import {Misc} from "../utils/Misc";
 import {writeFileSync} from "fs";
 import {RunHelper} from "../utils/RunHelper";
-import {TimeUtils} from "../../test/TimeUtils";
 
-const CONTROLLER = '0x81367059892aa1D8503a79a0Af9254DD0a09afBF';
-const TETU = '0x00379dD90b2A337C4652E286e4FBceadef940a21';
+const CONTROLLER = '0xA609fA657A9cfbD658be45dcbe31cc477F2d6d18';
+const TETU = '0xDe0636C1A6B9295aEF794aa32c39bf1F9F842CAd';
 
 async function main() {
   const signer = (await ethers.getSigners())[0];
   // const signer = await Misc.impersonate('0xbbbbb8C4364eC2ce52c59D2Ed3E56F307E529a94');
-  const usdc = await DeployerUtils.deployMockToken(signer, 'USDC');
-  const btc = await DeployerUtils.deployMockToken(signer, 'BTC');
+  const usdc = await DeployerUtils.deployMockToken(signer, 'USDC', 6);
+  const btc = await DeployerUtils.deployMockToken(signer, 'BTC', 8);
 
   const liquidator = await DeployerUtils.deployTetuLiquidator(signer, CONTROLLER);
   const uniSwapper = await DeployerUtils.deployUni2Swapper(signer, CONTROLLER);
@@ -42,18 +43,29 @@ async function main() {
   await addBC(liquidator, usdcWeth, usdc.address, weth, uniSwapper.address);
   await addBC(liquidator, btcWeth, btc.address, weth, uniSwapper.address);
   await addPool(liquidator, usdcTetu, usdc.address, TETU, uniSwapper.address);
+  await addPool(liquidator, usdcBtc, btc.address, usdc.address, uniSwapper.address);
+  await addPool(liquidator, usdcWeth, weth, usdc.address, uniSwapper.address);
 
-  writeFileSync('tmp/deployed/usdc.txt', usdc.address, 'utf8');
-  writeFileSync('tmp/deployed/btc.txt', btc.address, 'utf8');
-  writeFileSync('tmp/deployed/weth.txt', weth, 'utf8');
-  writeFileSync('tmp/deployed/liquidator.txt', liquidator.address, 'utf8');
+  const data = `
+  usdc: ${usdc.address}
+  btc: ${btc.address}
+  weth: ${weth}
+  liquidator: ${liquidator.address}
+  factory: ${factory.address}
+  uniSwapper: ${uniSwapper.address}
+  usdcBtc: ${usdcBtc.address}
+  usdcWeth: ${usdcWeth.address}
+  btcWeth: ${btcWeth.address}
+  usdcTetu: ${usdcTetu.address}
+  `
+  writeFileSync('tmp/deployed/liquidator.txt', data, 'utf8');
 }
 
 async function addPool(liq: TetuLiquidator, pair: UniswapV2Pair, tokenIn: string, tokenOut: string, swapper: string) {
   await RunHelper.runAndWait(() => liq.addLargestPools([
     {
       pool: pair.address,
-      swapper: Misc.ZERO_ADDRESS,
+      swapper,
       tokenIn,
       tokenOut,
     }
@@ -64,7 +76,7 @@ async function addBC(liq: TetuLiquidator, pair: UniswapV2Pair, tokenIn: string, 
   await RunHelper.runAndWait(() => liq.addBlueChipsPools([
     {
       pool: pair.address,
-      swapper: Misc.ZERO_ADDRESS,
+      swapper,
       tokenIn,
       tokenOut,
     }
