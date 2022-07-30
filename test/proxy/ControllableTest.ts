@@ -2,7 +2,7 @@ import {ethers} from "hardhat";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {expect} from "chai";
 import {DeployerUtils} from "../../scripts/utils/DeployerUtils";
-import {ControllableTest, ControllerMinimal} from "../../typechain";
+import {ControllableTest, Controller} from "../../typechain";
 import {TimeUtils} from "../TimeUtils";
 import {Misc} from "../../scripts/utils/Misc";
 
@@ -34,7 +34,10 @@ describe("Controllable Tests", function () {
 
 
   it("zero governance revert", async () => {
-    const controller = await DeployerUtils.deployContract(signer, 'ControllerMinimal', Misc.ZERO_ADDRESS) as ControllerMinimal;
+    const controller = await DeployerUtils.deployContract(signer, 'Controller') as Controller;
+    await controller.setGovernance(Misc.ZERO_ADDRESS)
+    const zeroSigner = await Misc.impersonate(Misc.ZERO_ADDRESS);
+    await controller.connect(zeroSigner).acceptGovernance();
     await expect(helper.init(controller.address)).revertedWith('Zero governance');
   });
 
@@ -53,7 +56,7 @@ describe("Controllable Tests", function () {
   });
 
   it("created block test", async () => {
-    const controller = await DeployerUtils.deployContract(signer, 'ControllerMinimal', signer.address) as ControllerMinimal;
+    const controller = await DeployerUtils.deployContract(signer, 'Controller') as Controller;
     await helper.init(controller.address);
     expect(await helper.createdBlock()).above(0);
   });

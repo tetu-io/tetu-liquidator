@@ -3,7 +3,7 @@ import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {expect} from "chai";
 import {DeployerUtils} from "../../scripts/utils/DeployerUtils";
 import {
-  ControllerMinimal,
+  Controller,
   ProxyControlled,
   ProxyControlled__factory,
   SlotsTest,
@@ -15,12 +15,12 @@ describe("Proxy Tests", function () {
   let snapshotBefore: string;
   let snapshot: string;
   let signer: SignerWithAddress;
-  let controller: ControllerMinimal;
+  let controller: Controller;
 
   before(async function () {
     snapshotBefore = await TimeUtils.snapshot();
     [signer] = await ethers.getSigners();
-    controller = await DeployerUtils.deployMockController(signer);
+    controller = await DeployerUtils.deployController(signer);
   });
 
   after(async function () {

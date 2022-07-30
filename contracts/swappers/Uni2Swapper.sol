@@ -21,7 +21,7 @@ contract Uni2Swapper is ControllableV3, ISwapper {
   /// @dev Version of this contract. Adjust manually on each code modification.
   string public constant UNI_SWAPPER_VERSION = "1.0.0";
   uint public constant FEE_DENOMINATOR = 100_000;
-  uint public constant SLIPPAGE_DENOMINATOR = 100_000;
+  uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
 
   // *************************************************************
   //                        VARIABLES
@@ -40,7 +40,7 @@ contract Uni2Swapper is ControllableV3, ISwapper {
     address tokenIn,
     address tokenOut,
     address recipient,
-    uint slippage,
+    uint priceImpactTolerance,
     uint amountIn,
     uint amountOut
   );
@@ -87,13 +87,13 @@ contract Uni2Swapper is ControllableV3, ISwapper {
   /// @param tokenIn Token for sell
   /// @param tokenOut Token for buy
   /// @param recipient Recipient for tokenOut
-  /// @param slippage Slippage tolerance. Must include fees at least. Denominator is 100_000.
+  /// @param priceImpactTolerance Price impact tolerance. Must include fees at least. Denominator is 100_000.
   function swap(
     address pool,
     address tokenIn,
     address tokenOut,
     address recipient,
-    uint slippage
+    uint priceImpactTolerance
   ) external override {
     uint amount0Out;
     uint amount1Out;
@@ -109,7 +109,7 @@ contract Uni2Swapper is ControllableV3, ISwapper {
 
       uint amountOutMax = getAmountOutMax(reserveIn, reserveOut, amountIn);
 
-      require((amountOutMax - amountOut) * SLIPPAGE_DENOMINATOR / amountOutMax <= slippage, "SLIPPAGE");
+      require((amountOutMax - amountOut) * PRICE_IMPACT_DENOMINATOR / amountOutMax <= priceImpactTolerance, "!PRICE");
 
       (address token0,) = _sortTokens(tokenIn, tokenOut);
       (amount0Out, amount1Out) = tokenIn == token0 ? (uint(0), amountOut) : (amountOut, uint(0));
@@ -129,7 +129,7 @@ contract Uni2Swapper is ControllableV3, ISwapper {
       tokenIn,
       tokenOut,
       recipient,
-      slippage,
+      priceImpactTolerance,
       amountIn,
       amount0Out == 0 ? amount1Out : amount0Out
     );

@@ -4,7 +4,7 @@ import {expect} from "chai";
 import {DeployerUtils} from "../scripts/utils/DeployerUtils";
 import {TimeUtils} from "./TimeUtils";
 import {
-  ControllerMinimal,
+  Controller,
   IERC20__factory,
   IERC20Metadata__factory,
   MockToken,
@@ -23,7 +23,7 @@ describe("Liquidator base Tests", function () {
   let snapshot: string;
   let signer: SignerWithAddress;
   let signer2: SignerWithAddress;
-  let controller: ControllerMinimal;
+  let controller: Controller;
   let liquidator: TetuLiquidator;
   let factory: UniswapV2Factory;
   let router: UniswapV2Router02;
@@ -36,7 +36,7 @@ describe("Liquidator base Tests", function () {
   before(async function () {
     snapshotBefore = await TimeUtils.snapshot();
     [signer, signer2] = await ethers.getSigners();
-    controller = await DeployerUtils.deployMockController(signer);
+    controller = await DeployerUtils.deployController(signer);
 
     liquidator = await DeployerUtils.deployTetuLiquidator(signer, controller.address);
 

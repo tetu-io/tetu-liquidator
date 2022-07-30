@@ -7,10 +7,13 @@ import {Logger} from "tslog";
 import {Libraries} from "hardhat-deploy/dist/types";
 import {parseUnits} from "ethers/lib/utils";
 import {
-  ControllerMinimal,
+  Controller,
   MockToken,
   ProxyControlled,
-  TetuLiquidator__factory, Uni2Swapper__factory, UniswapV2Factory, UniswapV2Router02
+  TetuLiquidator__factory,
+  Uni2Swapper__factory,
+  UniswapV2Factory,
+  UniswapV2Router02
 } from "../../typechain";
 import {VerifyUtils} from "./VerifyUtils";
 import {RunHelper} from "./RunHelper";
@@ -91,28 +94,28 @@ export class DeployerUtils {
   }
 
 
-  public static async deployMockController(signer: SignerWithAddress) {
-    return await DeployerUtils.deployContract(signer, 'ControllerMinimal', signer.address) as ControllerMinimal;
+  public static async deployController(signer: SignerWithAddress) {
+    return await DeployerUtils.deployContract(signer, 'Controller') as Controller;
   }
 
   public static async deployProxy(signer: SignerWithAddress, contract: string) {
     const logic = await DeployerUtils.deployContract(signer, contract);
     const proxy = await DeployerUtils.deployContract(signer, 'ProxyControlled') as ProxyControlled;
-    await RunHelper.runAndWait(() =>  proxy.initProxy(logic.address, {gasLimit: 8_000_000}));
+    await RunHelper.runAndWait(() => proxy.initProxy(logic.address, {gasLimit: 8_000_000}));
     return proxy.address;
   }
 
   public static async deployTetuLiquidator(signer: SignerWithAddress, controller: string) {
     const proxy = await DeployerUtils.deployProxy(signer, 'TetuLiquidator')
     const liq = TetuLiquidator__factory.connect(proxy, signer);
-    await RunHelper.runAndWait(() => liq.init(controller,{gasLimit: 8_000_000}));
+    await RunHelper.runAndWait(() => liq.init(controller, {gasLimit: 8_000_000}));
     return liq;
   }
 
   public static async deployUni2Swapper(signer: SignerWithAddress, controller: string) {
     const proxy = await DeployerUtils.deployProxy(signer, 'Uni2Swapper')
     const swapper = Uni2Swapper__factory.connect(proxy, signer);
-    await RunHelper.runAndWait(() =>  swapper.init(controller, {gasLimit: 8_000_000}))
+    await RunHelper.runAndWait(() => swapper.init(controller, {gasLimit: 8_000_000}))
     return swapper;
   }
 

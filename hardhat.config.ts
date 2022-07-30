@@ -67,7 +67,6 @@ const argv = require('yargs/yargs')()
       default: 'https://api.avax-test.network/ext/bc/C/rpc'
     },
     avaxRpcUrl: {
-    avaxRpcUrl: {
       type: "string",
       default: 'https://api.avax.network/ext/bc/C/rpc'
     },

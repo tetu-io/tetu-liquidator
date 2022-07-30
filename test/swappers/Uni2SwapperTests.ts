@@ -2,18 +2,17 @@ import {ethers} from "hardhat";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {expect} from "chai";
 import {
-  ControllerMinimal,
+  Controller,
   IERC20__factory,
   IERC20Metadata__factory,
   MockToken,
-  TetuLiquidator,
+  Uni2Swapper,
   UniswapV2Factory,
   UniswapV2Pair,
   UniswapV2Pair__factory,
   UniswapV2Router02
 } from "../../typechain";
 import {parseUnits} from "ethers/lib/utils";
-import {Uni2Swapper} from "../../typechain";
 import {TimeUtils} from "../TimeUtils";
 import {DeployerUtils} from "../../scripts/utils/DeployerUtils";
 import {Misc} from "../../scripts/utils/Misc";
@@ -24,7 +23,7 @@ describe("Liquidator base Tests", function () {
   let snapshot: string;
   let signer: SignerWithAddress;
   let signer2: SignerWithAddress;
-  let controller: ControllerMinimal;
+  let controller: Controller;
   let swapper: Uni2Swapper;
   let factory: UniswapV2Factory;
   let router: UniswapV2Router02;
@@ -38,7 +37,7 @@ describe("Liquidator base Tests", function () {
   before(async function () {
     snapshotBefore = await TimeUtils.snapshot();
     [signer, signer2] = await ethers.getSigners();
-    controller = await DeployerUtils.deployMockController(signer);
+    controller = await DeployerUtils.deployController(signer);
 
     swapper = await DeployerUtils.deployUni2Swapper(signer, controller.address);
 
@@ -110,7 +109,7 @@ describe("Liquidator base Tests", function () {
     )).revertedWith('ZERO_FEE');
   });
 
-  it("swap slippage revert", async () => {
+  it("swap price impact revert", async () => {
     await swapper.setFee(factory.address, 300);
     await tetu.transfer(swapper.address, parseUnits('10000'))
     await expect(swapper.swap(
@@ -119,7 +118,7 @@ describe("Liquidator base Tests", function () {
       usdc.address,
       signer.address,
       0
-    )).revertedWith('SLIPPAGE');
+    )).revertedWith('!PRICE');
   });
 
   it("swap tokens with 18 dec test", async () => {

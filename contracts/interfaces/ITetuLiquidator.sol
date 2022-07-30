@@ -26,13 +26,13 @@ interface ITetuLiquidator {
     address tokenIn,
     address tokenOut,
     uint amount,
-    uint slippage
+    uint priceImpactTolerance
   ) external;
 
   function liquidateWithRoute(
     PoolData[] memory route,
     uint amount,
-    uint slippage
+    uint priceImpactTolerance
   ) external;
 
 

@@ -9,7 +9,7 @@ interface ISwapper {
     address tokenIn,
     address tokenOut,
     address recipient,
-    uint slippage
+    uint priceImpactTolerance
   ) external;
 
   function getPrice(

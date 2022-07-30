@@ -146,7 +146,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
     address tokenIn,
     address tokenOut,
     uint amount,
-    uint slippage
+    uint priceImpactTolerance
   ) external override {
 
     (PoolData[] memory route, string memory errorMessage) = buildRoute(tokenIn, tokenOut);
@@ -154,21 +154,21 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
       revert(errorMessage);
     }
 
-    _liquidate(route, amount, slippage);
+    _liquidate(route, amount, priceImpactTolerance);
   }
 
   function liquidateWithRoute(
     PoolData[] memory route,
     uint amount,
-    uint slippage
+    uint priceImpactTolerance
   ) external override {
-    _liquidate(route, amount, slippage);
+    _liquidate(route, amount, priceImpactTolerance);
   }
 
   function _liquidate(
     PoolData[] memory route,
     uint amount,
-    uint slippage
+    uint priceImpactTolerance
   ) internal {
     require(route.length > 0, "ZERO_LENGTH");
 
@@ -188,7 +188,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
         recipient = msg.sender;
       }
 
-      ISwapper(data.swapper).swap(data.pool, data.tokenIn, data.tokenOut, recipient, slippage);
+      ISwapper(data.swapper).swap(data.pool, data.tokenIn, data.tokenOut, recipient, priceImpactTolerance);
     }
 
     emit Liquidated(route[0].tokenIn, route[route.length - 1].tokenOut, amount);
