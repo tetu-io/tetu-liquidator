@@ -3,28 +3,27 @@ import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {expect} from "chai";
 import {
   Controller,
+  DystFactory,
+  DystopiaSwapper,
   IERC20__factory,
   IERC20Metadata__factory,
   MockToken,
-  Uni2Swapper,
-  UniswapV2Factory,
   UniswapV2Pair,
   UniswapV2Pair__factory
 } from "../../typechain";
 import {parseUnits} from "ethers/lib/utils";
 import {TimeUtils} from "../TimeUtils";
 import {DeployerUtils} from "../../scripts/utils/DeployerUtils";
-import {Misc} from "../../scripts/utils/Misc";
 
 
-describe("Uni2SwapperTests", function () {
+describe("DystopiaSwapperTests", function () {
   let snapshotBefore: string;
   let snapshot: string;
   let signer: SignerWithAddress;
   let signer2: SignerWithAddress;
   let controller: Controller;
-  let swapper: Uni2Swapper;
-  let factory: UniswapV2Factory;
+  let swapper: DystopiaSwapper;
+  let factory: DystFactory;
 
   let usdc: MockToken;
   let tetu: MockToken;
@@ -37,16 +36,16 @@ describe("Uni2SwapperTests", function () {
     [signer, signer2] = await ethers.getSigners();
     controller = await DeployerUtils.deployController(signer);
 
-    swapper = await DeployerUtils.deployUni2Swapper(signer, controller.address);
+    swapper = await DeployerUtils.deployDystopiaSwapper(signer, controller.address);
 
-    const uniData = await DeployerUtils.deployUniswap(signer);
+    const uniData = await DeployerUtils.deployDystopia(signer);
     factory = uniData.factory;
 
     usdc = await DeployerUtils.deployMockToken(signer, 'USDC', 6);
     tetu = await DeployerUtils.deployMockToken(signer, 'TETU');
     matic = await DeployerUtils.deployMockToken(signer, 'WMATIC');
 
-    tetuUsdc = await createPair(signer, factory, usdc.address, tetu.address);
+    tetuUsdc = await createPair(signer, factory, usdc.address, tetu.address, false);
   });
 
   after(async function () {
@@ -63,7 +62,6 @@ describe("Uni2SwapperTests", function () {
   });
 
   it("swap with dec 18 to dec 6 test", async () => {
-    await swapper.setFee(factory.address, 300);
     const bal = await usdc.balanceOf(signer.address);
     await tetu.transfer(swapper.address, parseUnits('10000'))
     await swapper.swap(
@@ -78,7 +76,6 @@ describe("Uni2SwapperTests", function () {
   });
 
   it("swap with dec 6 to dec 18 test", async () => {
-    await swapper.setFee(factory.address, 300);
     const bal = await tetu.balanceOf(signer.address);
     await usdc.transfer(swapper.address, parseUnits('10000', 6))
     await swapper.swap(
@@ -92,22 +89,7 @@ describe("Uni2SwapperTests", function () {
     expect(balAfter.sub(bal)).above(parseUnits('4700'));
   });
 
-  it("set fee from non gov revert", async () => {
-    await expect(swapper.connect(signer2).setFee(Misc.ZERO_ADDRESS, 0)).revertedWith('DENIED')
-  });
-
-  it("swap without fee revert", async () => {
-    await expect(swapper.swap(
-      tetuUsdc.address,
-      tetu.address,
-      usdc.address,
-      signer.address,
-      6_000
-    )).revertedWith('ZERO_FEE');
-  });
-
   it("swap price impact revert", async () => {
-    await swapper.setFee(factory.address, 300);
     await tetu.transfer(swapper.address, parseUnits('10000'))
     await expect(swapper.swap(
       tetuUsdc.address,
@@ -119,8 +101,7 @@ describe("Uni2SwapperTests", function () {
   });
 
   it("swap tokens with 18 dec test", async () => {
-    const tetuWmatic = await createPair(signer, factory, matic.address, tetu.address);
-    await swapper.setFee(factory.address, 300);
+    const tetuWmatic = await createPair(signer, factory, matic.address, tetu.address, true);
     const bal = await matic.balanceOf(signer.address);
     await tetu.transfer(swapper.address, parseUnits('10000'))
     await swapper.swap(
@@ -134,12 +115,16 @@ describe("Uni2SwapperTests", function () {
     expect(balAfter.sub(bal)).above(parseUnits('4700', 6));
   });
 
+  it("get price test", async () => {
+    expect(await swapper.getPrice(tetuUsdc.address, tetu.address, usdc.address, parseUnits('1'))).eq(parseUnits('0.499747', 6));
+  });
+
 });
 
 
-async function createPair(signer: SignerWithAddress, factory: UniswapV2Factory, token1: string, token2: string) {
-  await factory.createPair(token1, token2);
-  const pairAdr = await factory.getPair(token1, token2);
+async function createPair(signer: SignerWithAddress, factory: DystFactory, token1: string, token2: string, stable: boolean) {
+  await factory.createPair(token1, token2, stable);
+  const pairAdr = await factory.getPair(token1, token2, stable);
   const pair = UniswapV2Pair__factory.connect(pairAdr, signer);
   await IERC20__factory.connect(token1, signer).transfer(pairAdr, parseUnits('100000', await IERC20Metadata__factory.connect(token1, signer).decimals()))
   await IERC20__factory.connect(token2, signer).transfer(pairAdr, parseUnits('200000', await IERC20Metadata__factory.connect(token2, signer).decimals()))

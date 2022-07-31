@@ -11,8 +11,7 @@ import {
   TetuLiquidator,
   UniswapV2Factory,
   UniswapV2Pair,
-  UniswapV2Pair__factory,
-  UniswapV2Router02
+  UniswapV2Pair__factory
 } from "../typechain";
 import {parseUnits} from "ethers/lib/utils";
 import {Misc} from "../scripts/utils/Misc";
@@ -25,7 +24,6 @@ describe("Liquidator routes Tests", function () {
   let controller: Controller;
   let liquidator: TetuLiquidator;
   let factory: UniswapV2Factory;
-  let router: UniswapV2Router02;
 
   let bc1: MockToken;
   let bc2: MockToken;
@@ -72,7 +70,6 @@ describe("Liquidator routes Tests", function () {
 
     const uniData = await DeployerUtils.deployUniswap(signer);
     factory = uniData.factory;
-    router = uniData.router;
 
     p12 = await createPair(signer, factory, bc1.address, bc2.address);
     p27 = await createPair(signer, factory, t7.address, bc2.address);

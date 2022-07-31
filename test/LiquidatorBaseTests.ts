@@ -11,8 +11,7 @@ import {
   TetuLiquidator,
   UniswapV2Factory,
   UniswapV2Pair,
-  UniswapV2Pair__factory,
-  UniswapV2Router02
+  UniswapV2Pair__factory
 } from "../typechain";
 import {parseUnits} from "ethers/lib/utils";
 import {Misc} from "../scripts/utils/Misc";
@@ -26,7 +25,6 @@ describe("Liquidator base Tests", function () {
   let controller: Controller;
   let liquidator: TetuLiquidator;
   let factory: UniswapV2Factory;
-  let router: UniswapV2Router02;
 
   let usdc: MockToken;
   let tetu: MockToken;
@@ -42,7 +40,6 @@ describe("Liquidator base Tests", function () {
 
     const uniData = await DeployerUtils.deployUniswap(signer);
     factory = uniData.factory;
-    router = uniData.router;
 
     usdc = await DeployerUtils.deployMockToken(signer, 'USDC', 6);
     tetu = await DeployerUtils.deployMockToken(signer, 'TETU');
@@ -229,10 +226,10 @@ describe("Liquidator base Tests", function () {
     const priceTetuMatic = await liquidator.getPrice(tetu.address, matic.address, 0);
     const priceUsdcMatic = await liquidator.getPrice(usdc.address, matic.address, 0);
     const priceMaticUsdc = await liquidator.getPrice(matic.address, usdc.address, 0);
-    expect(priceTetuUsdc).eq(parseUnits('0.5', 6));
-    expect(priceTetuMatic).eq(parseUnits('1'));
-    expect(priceUsdcMatic).eq(parseUnits('2'));
-    expect(priceMaticUsdc).eq(parseUnits('0.5', 6));
+    expect(priceTetuUsdc).eq(parseUnits('0.333333', 6));
+    expect(priceTetuMatic).eq(parseUnits('0.499999624999906249'));
+    expect(priceUsdcMatic).eq(parseUnits('1'));
+    expect(priceMaticUsdc).eq(parseUnits('0.333333', 6));
 
     const route = await liquidator.buildRoute(tetu.address, usdc.address);
     const priceTetuUsdcFromRoute = await liquidator.getPriceForRoute(route.route, 0);

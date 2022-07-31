@@ -15,7 +15,7 @@ async function main() {
   liquidator: ${liquidator.address}
   uniSwapper: ${uniSwapper.address}
   `
-  writeFileSync('tmp/deployed/liquidator_matic.txt', data, 'utf8');
+  writeFileSync('tmp/deployed/liquidator.txt', data, 'utf8');
 }
 
 main()

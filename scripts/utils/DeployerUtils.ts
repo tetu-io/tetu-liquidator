@@ -8,12 +8,14 @@ import {Libraries} from "hardhat-deploy/dist/types";
 import {parseUnits} from "ethers/lib/utils";
 import {
   Controller,
+  DystFactory,
+  DystopiaSwapper,
+  DystopiaSwapper__factory,
   MockToken,
   ProxyControlled,
   TetuLiquidator__factory,
   Uni2Swapper__factory,
-  UniswapV2Factory,
-  UniswapV2Router02
+  UniswapV2Factory
 } from "../../typechain";
 import {VerifyUtils} from "./VerifyUtils";
 import {RunHelper} from "./RunHelper";
@@ -119,14 +121,28 @@ export class DeployerUtils {
     return swapper;
   }
 
+  public static async deployDystopiaSwapper(signer: SignerWithAddress, controller: string) {
+    const proxy = await DeployerUtils.deployProxy(signer, 'DystopiaSwapper')
+    const swapper = DystopiaSwapper__factory.connect(proxy, signer);
+    await RunHelper.runAndWait(() => swapper.init(controller, {gasLimit: 8_000_000}))
+    return swapper;
+  }
+
   public static async deployUniswap(signer: SignerWithAddress) {
     const factory = await DeployerUtils.deployContract(signer, 'UniswapV2Factory', signer.address) as UniswapV2Factory;
     const netToken = (await DeployerUtils.deployMockToken(signer, 'WETH')).address.toLowerCase();
-    const router = await DeployerUtils.deployContract(signer, 'UniswapV2Router02', factory.address, netToken) as UniswapV2Router02;
     return {
       factory,
-      netToken,
-      router
+      netToken
+    }
+  }
+
+  public static async deployDystopia(signer: SignerWithAddress) {
+    const factory = await DeployerUtils.deployContract(signer, 'DystFactory', signer.address) as DystFactory;
+    const netToken = (await DeployerUtils.deployMockToken(signer, 'WETH')).address.toLowerCase();
+    return {
+      factory,
+      netToken
     }
   }
 
