@@ -20,7 +20,7 @@ contract DystopiaSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant DYSTOPIA_SWAPPER_VERSION = "1.0.1";
+  string public constant DYSTOPIA_SWAPPER_VERSION = "1.0.2";
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
 
   // --- REBASE TOKENS
@@ -89,6 +89,10 @@ contract DystopiaSwapper is ControllableV3, ISwapper {
     address recipient,
     uint priceImpactTolerance
   ) external override {
+    // need to sync the pair for tokens with rebase mechanic
+    _syncPairIfNeeds(tokenIn, pool);
+    _syncPairIfNeeds(tokenOut, pool);
+
     uint amountIn = IERC20(tokenIn).balanceOf(address(this));
     uint amountOut = IDystopiaPair(pool).getAmountOut(amountIn, tokenIn);
 
@@ -117,10 +121,6 @@ contract DystopiaSwapper is ControllableV3, ISwapper {
 
       IERC20(tokenIn).safeTransfer(pool, amountIn);
     }
-
-    // need to sync the pair for tokens with rebase mechanic
-    _syncPairIfNeeds(tokenIn, pool);
-    _syncPairIfNeeds(tokenOut, pool);
 
     IDystopiaPair(pool).swap(
       amount0Out,
