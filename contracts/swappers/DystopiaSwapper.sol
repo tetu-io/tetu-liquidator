@@ -20,8 +20,11 @@ contract DystopiaSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant DYSTOPIA_SWAPPER_VERSION = "1.0.0";
+  string public constant DYSTOPIA_SWAPPER_VERSION = "1.0.1";
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
+
+  // --- REBASE TOKENS
+  address private constant _USD_PLUS = 0x236eeC6359fb44CCe8f97E99387aa7F8cd5cdE1f;
 
   // *************************************************************
   //                        VARIABLES
@@ -115,6 +118,10 @@ contract DystopiaSwapper is ControllableV3, ISwapper {
       IERC20(tokenIn).safeTransfer(pool, amountIn);
     }
 
+    // need to sync the pair for tokens with rebase mechanic
+    _syncPairIfNeeds(tokenIn, pool);
+    _syncPairIfNeeds(tokenOut, pool);
+
     IDystopiaPair(pool).swap(
       amount0Out,
       amount1Out,
@@ -131,6 +138,12 @@ contract DystopiaSwapper is ControllableV3, ISwapper {
       amountIn,
       amount0Out == 0 ? amount1Out : amount0Out
     );
+  }
+
+  function _syncPairIfNeeds(address token, address pool) internal {
+    if (token == _USD_PLUS) {
+      IDystopiaPair(pool).sync();
+    }
   }
 
   /// @dev Returns sorted token addresses, used to handle return values from pairs sorted in this order

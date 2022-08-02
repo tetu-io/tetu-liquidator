@@ -441,7 +441,7 @@ contract DystPair is IERC20, IDystopiaPair, Reentrancy {
   }
 
   // force reserves to match balances
-  function sync() external lock {
+  function sync() external lock override {
     _update(
       IERC20(token0).balanceOf(address(this)),
       IERC20(token1).balanceOf(address(this)),
