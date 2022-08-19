@@ -15,8 +15,8 @@ import {Misc} from "../utils/Misc";
 import {writeFileSync} from "fs";
 import {RunHelper} from "../utils/RunHelper";
 
-const CONTROLLER = '0xA609fA657A9cfbD658be45dcbe31cc477F2d6d18';
-const TETU = '0xDe0636C1A6B9295aEF794aa32c39bf1F9F842CAd';
+const CONTROLLER = '0x0EFc2D2D054383462F2cD72eA2526Ef7687E1016';
+const TETU = '0x88a12B7b6525c0B46c0c200405f49cE0E72D71Aa';
 
 async function main() {
   const signer = (await ethers.getSigners())[0];
