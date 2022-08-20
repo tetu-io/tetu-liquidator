@@ -13,6 +13,16 @@ This solution is able to liquidate token to another token with strict predefined
 | UniV2Swapper    | [0x0089539BeCB82Ab51bc5C76F93Aa61281540fF33](https://polygonscan.com/address/0x0089539BeCB82Ab51bc5C76F93Aa61281540fF33#readProxyContract)  |
 | DystopiaSwapper | [0x867F88209074f4B7300e7593Cd50C05B2c02Ad01](https://polygonscan.com/address/0x867F88209074f4B7300e7593Cd50C05B2c02Ad01#readProxyContract)  |
 
+
+## BSC addresses
+
+| Name            | Address                                                                                                                                |
+|-----------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| Controller      | [0x849ecF35f711fFE183838DFdaaDFe105D4C0662a](https://bscscan.com/address/0x849ecF35f711fFE183838DFdaaDFe105D4C0662a#readProxyContract) |
+| Liquidator      | [0xcE9F7173420b41678320cd4BB93517382b6D48e8](https://bscscan.com/address/0xcE9F7173420b41678320cd4BB93517382b6D48e8#readProxyContract) |
+| UniV2Swapper    | [0xD37fC11dEDfaa0fc3449b2BF5eDe864Ef6AaE1E3](https://bscscan.com/address/0xD37fC11dEDfaa0fc3449b2BF5eDe864Ef6AaE1E3#readProxyContract) |
+| DystopiaSwapper | [0xECc1B6f004d4A04017a6eDc1A02f222f4ea7cad2](https://bscscan.com/address/0xECc1B6f004d4A04017a6eDc1A02f222f4ea7cad2#readProxyContract) |
+
 ## Links
 
 Web: https://tetu.io/

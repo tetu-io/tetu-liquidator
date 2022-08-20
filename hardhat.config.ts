@@ -48,6 +48,9 @@ const argv = require('yargs/yargs')()
     networkScanKeyFtm: {
       type: "string",
     },
+    networkScanKeyBsc: {
+      type: "string",
+    },
     privateKey: {
       type: "string",
       default: "85bb5fa78d5c4ed1fde856e9d0d1fe19973d7a79ce9ed6c0358ee06a4550504e" // random account
@@ -75,6 +78,14 @@ const argv = require('yargs/yargs')()
     goerliRpcUrl: {
       type: "string",
       default: ''
+    },
+    bscRpcUrl: {
+      type: "string",
+      default: 'https://bsc-dataseed.binance.org/'
+    },
+    bscForkBlock: {
+      type: "number",
+      default: 0
     },
   }).argv;
 
@@ -105,12 +116,14 @@ export default {
               argv.hardhatChainId === 250 ? argv.ftmRpcUrl :
                 argv.hardhatChainId === 421611 ? argv.arbtestRpcUrl :
                   argv.hardhatChainId === 43113 ? argv.fujiRpcUrl :
-                    undefined,
+                    argv.hardhatChainId === 56 ? argv.bscRpcUrl :
+                      undefined,
         blockNumber:
           argv.hardhatChainId === 1 ? argv.ethForkBlock !== 0 ? argv.ethForkBlock : undefined :
             argv.hardhatChainId === 137 ? argv.maticForkBlock !== 0 ? argv.maticForkBlock : undefined :
               argv.hardhatChainId === 250 ? argv.ftmForkBlock !== 0 ? argv.ftmForkBlock : undefined :
-                undefined
+                argv.hardhatChainId === 56 ? argv.bscForkBlock !== 0 ? argv.bscForkBlock : undefined :
+                  undefined
       } : undefined,
       accounts: {
         mnemonic: "test test test test test test test test test test test junk",
@@ -166,6 +179,15 @@ export default {
       // gas: 50_000_000_000,
       accounts: [argv.privateKey],
     },
+    bsc: {
+      url: argv.bscRpcUrl,
+      timeout: 99999,
+      chainId: 56,
+      // gas: 19_000_000,
+      // gasPrice: 100_000_000_000,
+      // gasMultiplier: 1.3,
+      accounts: [argv.privateKey],
+    },
   },
   etherscan: {
     //  https://hardhat.org/plugins/nomiclabs-hardhat-etherscan.html#multiple-api-keys-and-alternative-block-explorers
@@ -175,7 +197,8 @@ export default {
       polygon: argv.networkScanKeyMatic || argv.networkScanKey,
       opera: argv.networkScanKeyFtm || argv.networkScanKey,
       arbitrumTestnet: argv.networkScanKeyArbitrum || argv.networkScanKey,
-      avalancheFujiTestnet: argv.networkScanKeyAvalanche || argv.networkScanKey
+      avalancheFujiTestnet: argv.networkScanKeyAvalanche || argv.networkScanKey,
+      bsc: argv.networkScanKeyBsc || argv.networkScanKey,
     },
   },
   solidity: {

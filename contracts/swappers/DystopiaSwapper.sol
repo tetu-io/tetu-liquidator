@@ -20,11 +20,12 @@ contract DystopiaSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant DYSTOPIA_SWAPPER_VERSION = "1.0.2";
+  string public constant DYSTOPIA_SWAPPER_VERSION = "1.0.3";
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
 
   // --- REBASE TOKENS
-  address private constant _USD_PLUS = 0x236eeC6359fb44CCe8f97E99387aa7F8cd5cdE1f;
+  address private constant _USD_PLUS_MATIC = 0x236eeC6359fb44CCe8f97E99387aa7F8cd5cdE1f;
+  address private constant _USD_PLUS_BSC = 0xe80772Eaf6e2E18B651F160Bc9158b2A5caFCA65;
 
   // *************************************************************
   //                        VARIABLES
@@ -141,7 +142,7 @@ contract DystopiaSwapper is ControllableV3, ISwapper {
   }
 
   function _syncPairIfNeeds(address token, address pool) internal {
-    if (token == _USD_PLUS) {
+    if (token == _USD_PLUS_MATIC || token == _USD_PLUS_BSC) {
       IDystopiaPair(pool).sync();
     }
   }
