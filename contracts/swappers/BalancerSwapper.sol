@@ -7,9 +7,10 @@ import "../interfaces/IERC20.sol";
 import "../interfaces/IERC20Metadata.sol";
 import "../interfaces/ISwapper.sol";
 import "../interfaces/IBVault.sol";
-import "../interfaces/IBasePool.sol";
+import "../interfaces/IWeightedPool.sol";
 import "../proxy/ControllableV3.sol";
 import "../openzeppelin/Math.sol";
+import "../lib/WeightedMath.sol";
 
 /// @title Swap tokens via Balancer vault.
 /// @author bogdoslav
@@ -73,38 +74,35 @@ contract BalancerSwapper is ControllableV3, ISwapper {
     address tokenIn,
     address tokenOut,
     uint amount
-  ) public override returns (uint) {
+  ) public view override returns (uint) {
 
-    IAsset[] memory assets = new IAsset[](2);
-    assets[_ASSET_IN_INDEX] = IAsset(tokenIn);
-    assets[_ASSET_OUT_INDEX] = IAsset(tokenOut);
-
-    IBVault.BatchSwapStep memory swapStep;
-    swapStep.poolId = IBasePool(pool).getPoolId();
-    swapStep.assetInIndex = _ASSET_IN_INDEX;
-    swapStep.assetOutIndex = _ASSET_OUT_INDEX;
-    swapStep.amount = amount;
-    IBVault.BatchSwapStep[] memory swaps = new IBVault.BatchSwapStep[](1);
-    swaps[0] = swapStep;
-
-    IBVault.FundManagement memory funds;
-    funds.sender = address(this);
-    funds.fromInternalBalance = false;
-    funds.recipient = payable(address(this));
-    funds.toInternalBalance = false;
-
-    // In order to accurately 'simulate' swaps, this function actually does perform the swaps, including calling the
-    // Pool hooks and updating balances in storage. However, once it computes the final Vault Deltas, it
-    // reverts unconditionally, returning this array as the revert data.
-    // Read more: https://github.com/balancer-labs/balancer-v2-monorepo/blob/cf6576db6cab7a7aa731d74dcdff1c4babb9a935/pkg/vault/contracts/Swaps.sol#L446
-
-    int256[] memory returned = IBVault(balancerVault).queryBatchSwap(
-      IBVault.SwapKind.GIVEN_IN,
-      swaps,
-      assets,
-      funds
+    bytes32 poolId = IWeightedPool(pool).getPoolId();
+    (IERC20[] memory tokens,
+    uint256[] memory balances,) = IBVault(balancerVault).getPoolTokens(poolId);
+    require(tokens.length == 2, 'Wrong pool tokens length');
+    require(
+      (tokens[0] == IERC20(tokenIn) && tokens[1] == IERC20(tokenOut)) ||
+      (tokens[1] == IERC20(tokenIn) && tokens[0] == IERC20(tokenOut)),
+      'Wrong pool tokens'
     );
-    return uint(returned[_ASSET_OUT_INDEX]);
+    uint256[] memory weights = IWeightedPool(pool).getNormalizedWeights();
+    require(weights.length == 2, 'Wrong pool weights length');
+
+    bool direct = tokens[0] == IERC20(tokenIn);
+
+    (uint weightIn, uint weightOut) = direct ?
+      (weights[0], weights[1]) : (weights[1], weights[0]);
+
+    (uint balanceIn, uint balanceOut) = direct ?
+      (balances[0], balances[1]) : (balances[1], balances[0]);
+
+    return WeightedMath._calcOutGivenIn(
+      balanceIn,
+      weightIn,
+      balanceOut,
+      weightOut,
+      amount
+    );
   }
 
   // *************************************************************
@@ -136,7 +134,7 @@ contract BalancerSwapper is ControllableV3, ISwapper {
 
     // Initializing each struct field one-by-one uses less gas than setting all at once.
     IBVault.SingleSwap memory singleSwap;
-    singleSwap.poolId = IBasePool(pool).getPoolId();
+    singleSwap.poolId = IWeightedPool(pool).getPoolId();
     singleSwap.kind = IBVault.SwapKind.GIVEN_IN;
     singleSwap.assetIn = IAsset(address(tokenIn));
     singleSwap.assetOut = IAsset(address(tokenOut));
