@@ -27,6 +27,7 @@ contract BalancerSwapper is ControllableV3, ISwapper {
 
   uint private constant _ASSET_IN_INDEX = 0;
   uint private constant _ASSET_OUT_INDEX = 1;
+  uint private constant _LIMIT = 1;
 
   // *************************************************************
   //                        VARIABLES
@@ -72,7 +73,7 @@ contract BalancerSwapper is ControllableV3, ISwapper {
     address tokenIn,
     address tokenOut,
     uint amount
-  ) external override returns (uint) {
+  ) public override returns (uint) {
 
     IAsset[] memory assets = new IAsset[](2);
     assets[_ASSET_IN_INDEX] = IAsset(tokenIn);
@@ -126,24 +127,6 @@ contract BalancerSwapper is ControllableV3, ISwapper {
 
     uint amountIn = IERC20(tokenIn).balanceOf(address(this));
 
-    // TODO check price impact
-    // scope for checking price impact
-/*    {
-      uint tokenInDecimals = IERC20Metadata(tokenIn).decimals();
-      uint tokenOutDecimals = IERC20Metadata(tokenOut).decimals();
-      uint minimalAmount = 10 ** Math.max(
-        (tokenInDecimals > tokenOutDecimals ?
-      tokenInDecimals - tokenOutDecimals
-      : tokenOutDecimals - tokenInDecimals)
-      , 1) * 10_000;
-      uint amountOutMax = IDystopiaPair(pool).getAmountOut(minimalAmount, tokenIn) * amountIn / minimalAmount;
-
-      // it is pretty hard to calculate exact impact for stable pool
-      require(amountOutMax < amountOut ||
-        (amountOutMax - amountOut) * PRICE_IMPACT_DENOMINATOR / amountOutMax <= priceImpactTolerance,
-        "!PRICE");
-    }*/
-
     // Initializing each struct field one-by-one uses less gas than setting all at once.
     IBVault.FundManagement memory funds;
     funds.sender = address(this);
@@ -160,9 +143,26 @@ contract BalancerSwapper is ControllableV3, ISwapper {
     singleSwap.amount = amountIn;
     singleSwap.userData = "";
 
-    uint limit = 1; // TODO
     IERC20(tokenIn).approve(balancerVault, amountIn);
-    uint amountOut = IBVault(balancerVault).swap(singleSwap, funds, limit, block.timestamp);
+    uint amountOut = IBVault(balancerVault).swap(singleSwap, funds, _LIMIT, block.timestamp);
+
+    // scope for checking price impact
+    {
+      uint tokenInDecimals = IERC20Metadata(tokenIn).decimals();
+      uint tokenOutDecimals = IERC20Metadata(tokenOut).decimals();
+      uint minimalAmount = 10 ** Math.max(
+        (tokenInDecimals > tokenOutDecimals
+      ? tokenInDecimals - tokenOutDecimals
+      : tokenOutDecimals - tokenInDecimals
+        )
+      , 1) * 10_000;
+      uint amountOutMax = getPrice(pool, tokenIn, tokenOut, minimalAmount) * amountIn / minimalAmount;
+
+      // it is pretty hard to calculate exact impact for Balancer pools
+      require(amountOutMax < amountOut ||
+        (amountOutMax - amountOut) * PRICE_IMPACT_DENOMINATOR / amountOutMax <= priceImpactTolerance,
+        "!PRICE");
+    }
 
     emit Swap(
       pool,
