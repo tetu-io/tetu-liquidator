@@ -98,7 +98,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
   // *************************************************************
 
   /// @dev Return price of given tokenIn against tokenOut in decimals of tokenOut.
-  function getPrice(address tokenIn, address tokenOut, uint amount) external view override returns (uint) {
+  function getPrice(address tokenIn, address tokenOut, uint amount) external /*view*/ override returns (uint) {
     (PoolData[] memory route,) = buildRoute(tokenIn, tokenOut);
     if (route.length == 0) {
       return 0;
@@ -117,7 +117,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
   }
 
   /// @dev Return price the first poolData.tokenIn against the last poolData.tokenOut in decimals of tokenOut.
-  function getPriceForRoute(PoolData[] memory route, uint amount) external view override returns (uint) {
+  function getPriceForRoute(PoolData[] memory route, uint amount) external /*view*/ override returns (uint) {
     uint price;
     if (amount == 0) {
       price = 10 ** IERC20Metadata(route[0].tokenIn).decimals();

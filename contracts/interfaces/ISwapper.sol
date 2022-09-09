@@ -17,6 +17,6 @@ interface ISwapper {
     address tokenIn,
     address tokenOut,
     uint amount
-  ) external view returns (uint);
+  ) external /*view*/ returns (uint);
 
 }
