@@ -1,12 +1,14 @@
 import {ethers, web3} from "hardhat";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {ContractFactory, utils} from "ethers";
+import {BigNumber, ContractFactory, utils} from "ethers";
 import {Misc} from "./Misc";
 import logSettings from "../../log_settings";
 import {Logger} from "tslog";
 import {Libraries} from "hardhat-deploy/dist/types";
-import {parseUnits} from "ethers/lib/utils";
+import {parseEther, parseUnits} from "ethers/lib/utils";
 import {
+  Authorizer,
+  BalancerSwapper__factory,
   Controller,
   DystFactory,
   DystopiaSwapper,
@@ -15,7 +17,7 @@ import {
   ProxyControlled,
   TetuLiquidator__factory,
   Uni2Swapper__factory,
-  UniswapV2Factory
+  UniswapV2Factory, Vault, Vault__factory, WeightedPool
 } from "../../typechain";
 import {VerifyUtils} from "./VerifyUtils";
 import {RunHelper} from "./RunHelper";
@@ -128,6 +130,13 @@ export class DeployerUtils {
     return swapper;
   }
 
+  public static async deployBalancerSwapper(signer: SignerWithAddress, controller: string, balancerVault: string) {
+    const proxy = await DeployerUtils.deployProxy(signer, 'BalancerSwapper')
+    const swapper = BalancerSwapper__factory.connect(proxy, signer);
+    await RunHelper.runAndWait(() => swapper.init(controller, balancerVault, {gasLimit: 8_000_000}))
+    return swapper;
+  }
+
   public static async deployUniswap(signer: SignerWithAddress) {
     const factory = await DeployerUtils.deployContract(signer, 'UniswapV2Factory', signer.address) as UniswapV2Factory;
     const netToken = (await DeployerUtils.deployMockToken(signer, 'WETH')).address.toLowerCase();
@@ -144,6 +153,44 @@ export class DeployerUtils {
       factory,
       netToken
     }
+  }
+
+  public static async deployBalancer(signer: SignerWithAddress) {
+    const authorizer = await DeployerUtils.deployContract(signer, 'Authorizer', signer.address) as Authorizer;
+    const vault = await DeployerUtils.deployContract(signer, 'Vault', signer.address) as Vault;
+
+    return {
+      authorizer,
+      vault,
+    }
+  }
+
+  public static async deployBalancerWeightedPool(
+    signer: SignerWithAddress,
+    vaultAddress: string,
+    tokens: string[],
+    normalizedWeights: BigNumber[],
+  ) {
+    const netToken = (await DeployerUtils.deployMockToken(signer, 'WETH')).address.toLowerCase();
+    const balToken = (await DeployerUtils.deployMockToken(signer, 'BAL')).address.toLowerCase();
+
+    const weightedPoolParams = {
+      vault: vaultAddress,
+      name: 'Balancer Weighted Pool',
+      symbol: 'B-WEIGHTED',
+      tokens,
+      normalizedWeights,
+      assetManagers: tokens.map(t => ethers.constants.AddressZero),
+      swapFeePercentage: parseEther('0.0025'),
+      pauseWindowDuration: BigNumber.from(90 * 24 * 3600),
+      bufferPeriodDuration: BigNumber.from(30 * 24 * 3600),
+      owner: signer.address
+    }
+    const weightedPool = await DeployerUtils.deployContract(signer, 'WeightedPool', weightedPoolParams) as WeightedPool;
+
+    const vault = await Vault__factory.connect(vaultAddress, signer);
+    // await vault.joinPool() // TODO
+    return weightedPool;
   }
 
 }

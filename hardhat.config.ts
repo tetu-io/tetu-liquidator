@@ -212,6 +212,15 @@ export default {
           }
         }
       },
+      { // for Balancer
+        version: "0.7.6",
+        settings: {
+          optimizer: {
+            enabled: true,
+            runs: 150,
+          }
+        }
+      },
     ]
   },
   paths: {
