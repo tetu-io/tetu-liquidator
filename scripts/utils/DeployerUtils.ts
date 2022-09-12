@@ -91,9 +91,9 @@ export class DeployerUtils {
     return _factory.attach(receipt.contractAddress);
   }
 
-  public static async deployMockToken(signer: SignerWithAddress, name = 'MOCK', decimals = 18) {
+  public static async deployMockToken(signer: SignerWithAddress, name = 'MOCK', decimals = 18, amount: string = '1000000') {
     const token = await DeployerUtils.deployContract(signer, 'MockToken', name + '_MOCK_TOKEN', name, decimals) as MockToken;
-    await RunHelper.runAndWait(() => token.mint(signer.address, parseUnits('1000000', decimals)));
+    await RunHelper.runAndWait(() => token.mint(signer.address, parseUnits(amount, decimals)));
     return token;
   }
 
@@ -155,41 +155,71 @@ export class DeployerUtils {
     }
   }
 
+  public static pauseWindowDuration = BigNumber.from(90 * 24 * 3600);
+  public static bufferPeriodDuration = BigNumber.from(30 * 24 * 3600);
+
   public static async deployBalancer(signer: SignerWithAddress) {
     const authorizer = await DeployerUtils.deployContract(signer, 'Authorizer', signer.address) as Authorizer;
-    const vault = await DeployerUtils.deployContract(signer, 'Vault', signer.address) as Vault;
+
+    const netToken = await DeployerUtils.deployMockToken(signer, 'WMATIC');
+
+    const vault = await DeployerUtils.deployContract(signer, 'Vault',
+      authorizer.address,
+      netToken.address,
+      DeployerUtils.pauseWindowDuration,
+      DeployerUtils.bufferPeriodDuration
+    ) as Vault;
 
     return {
       authorizer,
       vault,
+      netToken,
     }
   }
 
-  public static async deployBalancerWeightedPool(
+  public static async deployAndInitBalancerWeightedPool(
     signer: SignerWithAddress,
     vaultAddress: string,
-    tokens: string[],
+    tokens: MockToken[],
     normalizedWeights: BigNumber[],
+    initialBalances: BigNumber[],
   ) {
-    const netToken = (await DeployerUtils.deployMockToken(signer, 'WETH')).address.toLowerCase();
-    const balToken = (await DeployerUtils.deployMockToken(signer, 'BAL')).address.toLowerCase();
 
-    const weightedPoolParams = {
-      vault: vaultAddress,
-      name: 'Balancer Weighted Pool',
-      symbol: 'B-WEIGHTED',
-      tokens,
+    const weightedPoolParams = [
+      vaultAddress,
+      'Balancer Weighted Pool',
+      'B-WEIGHTED',
+      tokens.map(t => t.address),
       normalizedWeights,
-      assetManagers: tokens.map(t => ethers.constants.AddressZero),
-      swapFeePercentage: parseEther('0.0025'),
-      pauseWindowDuration: BigNumber.from(90 * 24 * 3600),
-      bufferPeriodDuration: BigNumber.from(30 * 24 * 3600),
-      owner: signer.address
-    }
-    const weightedPool = await DeployerUtils.deployContract(signer, 'WeightedPool', weightedPoolParams) as WeightedPool;
+      tokens.map(() => ethers.constants.AddressZero),
+      parseEther('0.0025'),
+      DeployerUtils.pauseWindowDuration,
+      DeployerUtils.bufferPeriodDuration,
+      signer.address
+    ]
+    const weightedPool = await DeployerUtils.deployContract(signer, 'WeightedPool',
+      ...weightedPoolParams) as WeightedPool;
 
     const vault = await Vault__factory.connect(vaultAddress, signer);
-    // await vault.joinPool() // TODO
+
+    for (let i = 0; i < tokens.length; i++) {
+      await tokens[i].approve(vaultAddress, initialBalances[i])
+    }
+
+    const JOIN_KIND_INIT = 0
+    const initUserData = ethers.utils.defaultAbiCoder.encode(
+      ["uint256", "uint256[]"],
+      [JOIN_KIND_INIT, initialBalances]
+    )
+    const joinPoolRequest = {
+      assets: tokens.map(t => t.address),
+      maxAmountsIn: initialBalances,
+      userData: initUserData,
+      fromInternalBalance: false
+    }
+
+    const poolId = await weightedPool.getPoolId();
+    await vault.joinPool(poolId, signer.address, signer.address, joinPoolRequest);
     return weightedPool;
   }
 

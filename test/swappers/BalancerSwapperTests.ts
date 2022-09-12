@@ -3,17 +3,9 @@ import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {expect} from "chai";
 import {
   Controller,
-  DystFactory,
   BalancerSwapper,
-  IERC20__factory,
-  IERC20Metadata__factory,
   MockToken,
-  UniswapV2Pair,
-  UniswapV2Pair__factory,
-  Authorizer,
-  Authorizer__factory,
-  Vault,
-  Vault__factory, WeightedPool,
+  WeightedPool,
 } from "../../typechain";
 import {parseEther, parseUnits} from "ethers/lib/utils";
 import {TimeUtils} from "../TimeUtils";
@@ -31,7 +23,6 @@ describe("BalancerSwapperTests", function () {
 
   let weth: MockToken;
   let bal: MockToken;
-  let matic: MockToken;
 
   let weightedPool: WeightedPool;
 
@@ -45,14 +36,15 @@ describe("BalancerSwapperTests", function () {
 
 
     weth = await DeployerUtils.deployMockToken(signer, 'WETH');
-    bal = await DeployerUtils.deployMockToken(signer, 'BAL');
-    matic = await DeployerUtils.deployMockToken(signer, 'WMATIC');
+    bal = await DeployerUtils.deployMockToken(signer, 'BAL', 18, '1000000000');
 
-    weightedPool = await DeployerUtils.deployBalancerWeightedPool(
+    weightedPool = await DeployerUtils.deployAndInitBalancerWeightedPool(
       signer,
       balancerCore.vault.address,
-      [weth.address, bal.address],
-      [parseEther('0.2'), parseEther('0.8')]
+      [weth, bal],
+      [parseEther('0.2'), parseEther('0.8')],
+      // 1WETH = 100BAL
+      [parseEther('200000'), parseEther('80000000')] // taken from https://app.balancer.fi/#/pool/0x5c6ee304399dbdb9c8ef030ab642b10820db8f56000200000000000000000014
     );
   });
 
@@ -108,8 +100,12 @@ describe("BalancerSwapperTests", function () {
     )).revertedWith('!PRICE');
   });
 
+  // TODO get price / balancer estimate price fn cmp
   it("get price test", async () => {
-    expect(await swapper.getPrice(weightedPool.address, bal.address, weth.address, parseUnits('1'))).eq(parseUnits('0.499747', 6));
+    expect(
+      await swapper.getPrice(weightedPool.address, weth.address, bal.address, parseUnits('1')))
+        .eq(parseEther('99.99968670104')
+    );
   });
 
 });
