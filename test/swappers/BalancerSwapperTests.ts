@@ -6,6 +6,7 @@ import {
   BalancerSwapper,
   MockToken,
   WeightedPool,
+  Vault,
 } from "../../typechain";
 import {parseEther, parseUnits} from "ethers/lib/utils";
 import {TimeUtils} from "../TimeUtils";
@@ -19,7 +20,7 @@ describe("BalancerSwapperTests", function () {
   let signer2: SignerWithAddress;
   let controller: Controller;
   let swapper: BalancerSwapper;
-  let balancerCore;
+  let vault: Vault;
 
   let weth: MockToken;
   let bal: MockToken;
@@ -31,16 +32,17 @@ describe("BalancerSwapperTests", function () {
     [signer, signer2] = await ethers.getSigners();
     controller = await DeployerUtils.deployController(signer);
 
-    balancerCore = await DeployerUtils.deployBalancer(signer);
-    swapper = await DeployerUtils.deployBalancerSwapper(signer, controller.address, balancerCore.vault.address);
+    const balancerCore = await DeployerUtils.deployBalancer(signer);
+    vault = balancerCore.vault;
 
+    swapper = await DeployerUtils.deployBalancerSwapper(signer, controller.address, vault.address);
 
     weth = await DeployerUtils.deployMockToken(signer, 'WETH');
     bal = await DeployerUtils.deployMockToken(signer, 'BAL', 18, '1000000000');
 
     weightedPool = await DeployerUtils.deployAndInitBalancerWeightedPool(
       signer,
-      balancerCore.vault.address,
+      vault.address,
       [weth, bal],
       [parseEther('0.2'), parseEther('0.8')],
       // Initially 1WETH = 100BAL
@@ -102,16 +104,49 @@ describe("BalancerSwapperTests", function () {
 
   it("get price test", async () => {
     expect(
-      await swapper.getPrice(weightedPool.address, weth.address, bal.address, parseUnits('1')))
-        .eq(parseEther('99.7496882616')
-    );
+      await swapper.getPrice(weightedPool.address, weth.address, bal.address, parseUnits('1'))
+    ).eq(parseEther('99.7496882616'));
   });
 
   it("get price test reverse", async () => {
     expect(
-      await swapper.getPrice(weightedPool.address, bal.address, weth.address, parseUnits('100')))
-        .eq(parseEther('0.9974968886124')
+      await swapper.getPrice(weightedPool.address, bal.address, weth.address, parseUnits('100'))
+    ).eq(parseEther('0.9974968886124'));
+  });
+
+  it("get price eq queryBatchSwap", async () => {
+    const amount = parseUnits('100');
+
+    const poolId = await weightedPool.getPoolId();
+
+    const batchSwapStep = {
+      poolId,
+      assetInIndex: '0',
+      assetOutIndex: '1',
+      amount,
+      userData: '0x',
+    };
+
+    const funds = {
+      sender: signer.address,
+      fromInternalBalance: false,
+      recipient: signer.address,
+      toInternalBalance: false,
+    }
+
+    const SWAP_KIND_GIVEN_IN = '0';
+
+    const [, balDelta] = await vault.callStatic.queryBatchSwap(
+      SWAP_KIND_GIVEN_IN,
+      [batchSwapStep],
+      [weth.address, bal.address],
+      funds
     );
+
+    const price = await swapper.getPrice(weightedPool.address, weth.address, bal.address, amount);
+    console.log('delta', balDelta.abs()); // return value is negative delta for pool
+    console.log('price', price);
+    expect(price).eq(balDelta.abs());
   });
 
 });
