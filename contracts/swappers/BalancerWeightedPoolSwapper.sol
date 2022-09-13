@@ -116,7 +116,7 @@ contract BalancerWeightedPoolSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Swap given tokenIn for tokenOut. Assume that tokenIn already sent to this contract.
-  /// @param pool Dystopia pool
+  /// @param pool Balancer Weighted pool
   /// @param tokenIn Token for sell
   /// @param tokenOut Token for buy
   /// @param recipient Recipient for tokenOut

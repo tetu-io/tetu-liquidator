@@ -31,6 +31,9 @@ const libraries = new Map<string, string>([
   ['VeTetu', 'VeTetuLogo']
 ]);
 
+const PAUSE_WINDOW_DURATION = BigNumber.from(90 * 24 * 3600);
+const BUFFER_PERIOD_DURATION = BigNumber.from(30 * 24 * 3600);
+
 export class DeployerUtils {
 
   // ************ CONTRACT DEPLOY **************************
@@ -155,10 +158,11 @@ export class DeployerUtils {
     }
   }
 
-  public static pauseWindowDuration = BigNumber.from(90 * 24 * 3600);
-  public static bufferPeriodDuration = BigNumber.from(30 * 24 * 3600);
-
-  public static async deployBalancer(signer: SignerWithAddress) {
+  public static async deployBalancer(
+    signer: SignerWithAddress,
+    pauseWindowDuration = PAUSE_WINDOW_DURATION,
+    bufferPeriodDuration = BUFFER_PERIOD_DURATION
+  ) {
     const authorizer = await DeployerUtils.deployContract(signer, 'Authorizer', signer.address) as Authorizer;
 
     const netToken = await DeployerUtils.deployMockToken(signer, 'WMATIC');
@@ -166,8 +170,8 @@ export class DeployerUtils {
     const vault = await DeployerUtils.deployContract(signer, 'Vault',
       authorizer.address,
       netToken.address,
-      DeployerUtils.pauseWindowDuration,
-      DeployerUtils.bufferPeriodDuration
+      pauseWindowDuration,
+      bufferPeriodDuration
     ) as Vault;
 
     return {
@@ -183,6 +187,9 @@ export class DeployerUtils {
     tokens: MockToken[],
     normalizedWeights: BigNumber[],
     initialBalances: BigNumber[],
+    swapFee = parseEther('0.0025'),
+    pauseWindowDuration = PAUSE_WINDOW_DURATION,
+    bufferPeriodDuration = BUFFER_PERIOD_DURATION
   ) {
 
     const weightedPoolParams = [
@@ -192,11 +199,12 @@ export class DeployerUtils {
       tokens.map(t => t.address),
       normalizedWeights,
       tokens.map(() => ethers.constants.AddressZero),
-      parseEther('0.0025'),
-      DeployerUtils.pauseWindowDuration,
-      DeployerUtils.bufferPeriodDuration,
+      swapFee,
+      pauseWindowDuration,
+      bufferPeriodDuration,
       signer.address
-    ]
+    ];
+
     const weightedPool = await DeployerUtils.deployContract(signer, 'WeightedPool',
       ...weightedPoolParams) as WeightedPool;
 
@@ -206,11 +214,13 @@ export class DeployerUtils {
       await tokens[i].approve(vaultAddress, initialBalances[i])
     }
 
-    const JOIN_KIND_INIT = 0
+    const JOIN_KIND_INIT = 0;
+
     const initUserData = ethers.utils.defaultAbiCoder.encode(
       ["uint256", "uint256[]"],
       [JOIN_KIND_INIT, initialBalances]
-    )
+    );
+
     const joinPoolRequest = {
       assets: tokens.map(t => t.address),
       maxAmountsIn: initialBalances,
