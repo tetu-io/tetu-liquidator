@@ -7,12 +7,13 @@ import "../interfaces/IERC20.sol";
 import "../interfaces/IERC20Metadata.sol";
 import "../interfaces/ISwapper.sol";
 import "../interfaces/IBVault.sol";
-import "../interfaces/IWeightedPool.sol";
+import "../interfaces/IBWeightedPoolMinimal.sol";
 import "../proxy/ControllableV3.sol";
 import "../openzeppelin/Math.sol";
 import "../lib/WeightedMath.sol";
 
 /// @title Swap tokens via Balancer vault.
+/// @notice !!! Weighted pools only supported yet !!!
 /// @author bogdoslav
 contract BalancerSwapper is ControllableV3, ISwapper {
   using SafeERC20 for IERC20;
@@ -23,7 +24,7 @@ contract BalancerSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant BASLANCER_SWAPPER_VERSION = "1.0.0";
+  string public constant BALANCER_SWAPPER_VERSION = "1.0.0";
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
 
   uint private constant _ASSET_IN_INDEX = 0;
@@ -75,17 +76,22 @@ contract BalancerSwapper is ControllableV3, ISwapper {
     address tokenOut,
     uint amount
   ) public view override returns (uint) {
-
-    bytes32 poolId = IWeightedPool(pool).getPoolId();
+    { // take pool commission
+      uint swapFeePercentage = IBWeightedPoolMinimal(pool).getSwapFeePercentage();
+      amount -= amount * swapFeePercentage / 10**18;
+    }
+    bytes32 poolId = IBWeightedPoolMinimal(pool).getPoolId();
     (IERC20[] memory tokens,
     uint256[] memory balances,) = IBVault(balancerVault).getPoolTokens(poolId);
+
     require(tokens.length == 2, 'Wrong pool tokens length');
     require(
       (tokens[0] == IERC20(tokenIn) && tokens[1] == IERC20(tokenOut)) ||
       (tokens[1] == IERC20(tokenIn) && tokens[0] == IERC20(tokenOut)),
       'Wrong pool tokens'
     );
-    uint256[] memory weights = IWeightedPool(pool).getNormalizedWeights();
+
+    uint256[] memory weights = IBWeightedPoolMinimal(pool).getNormalizedWeights();
     require(weights.length == 2, 'Wrong pool weights length');
 
     bool direct = tokens[0] == IERC20(tokenIn);
@@ -134,33 +140,28 @@ contract BalancerSwapper is ControllableV3, ISwapper {
 
     // Initializing each struct field one-by-one uses less gas than setting all at once.
     IBVault.SingleSwap memory singleSwap;
-    singleSwap.poolId = IWeightedPool(pool).getPoolId();
+    singleSwap.poolId = IBWeightedPoolMinimal(pool).getPoolId();
     singleSwap.kind = IBVault.SwapKind.GIVEN_IN;
     singleSwap.assetIn = IAsset(address(tokenIn));
     singleSwap.assetOut = IAsset(address(tokenOut));
     singleSwap.amount = amountIn;
     singleSwap.userData = "";
 
+    // scope for checking price impact
+    uint amountOutMax;
+    {
+      uint tokenInDecimals = IERC20Metadata(tokenIn).decimals();
+      uint minimalAmount = 10 ** (tokenInDecimals - 6);
+      uint price = getPrice(pool, tokenIn, tokenOut, minimalAmount);
+      amountOutMax = price * amountIn / minimalAmount;
+    }
+
     IERC20(tokenIn).approve(balancerVault, amountIn);
     uint amountOut = IBVault(balancerVault).swap(singleSwap, funds, _LIMIT, block.timestamp);
 
-    // scope for checking price impact
-    {
-      uint tokenInDecimals = IERC20Metadata(tokenIn).decimals();
-      uint tokenOutDecimals = IERC20Metadata(tokenOut).decimals();
-      uint minimalAmount = 10 ** Math.max(
-        (tokenInDecimals > tokenOutDecimals
-      ? tokenInDecimals - tokenOutDecimals
-      : tokenOutDecimals - tokenInDecimals
-        )
-      , 1) * 10_000;
-      uint amountOutMax = getPrice(pool, tokenIn, tokenOut, minimalAmount) * amountIn / minimalAmount;
-
-      // it is pretty hard to calculate exact impact for Balancer pools
-      require(amountOutMax < amountOut ||
-        (amountOutMax - amountOut) * PRICE_IMPACT_DENOMINATOR / amountOutMax <= priceImpactTolerance,
-        "!PRICE");
-    }
+    require(amountOutMax < amountOut ||
+      (amountOutMax - amountOut) * PRICE_IMPACT_DENOMINATOR / amountOutMax <= priceImpactTolerance,
+      "!PRICE");
 
     emit Swap(
       pool,
