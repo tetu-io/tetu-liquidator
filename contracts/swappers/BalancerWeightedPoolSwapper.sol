@@ -13,9 +13,8 @@ import "../openzeppelin/Math.sol";
 import "../lib/WeightedMath.sol";
 
 /// @title Swap tokens via Balancer vault.
-/// @notice !!! Weighted pools only supported yet !!!
 /// @author bogdoslav
-contract BalancerSwapper is ControllableV3, ISwapper {
+contract BalancerWeightedPoolSwapper is ControllableV3, ISwapper {
   using SafeERC20 for IERC20;
   address public balancerVault;
 
@@ -24,11 +23,9 @@ contract BalancerSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant BALANCER_SWAPPER_VERSION = "1.0.0";
+  string public constant BALANCER_WEIGHTED_POOL_SWAPPER_VERSION = "1.0.0";
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
 
-  uint private constant _ASSET_IN_INDEX = 0;
-  uint private constant _ASSET_OUT_INDEX = 1;
   uint private constant _LIMIT = 1;
 
   // *************************************************************
@@ -84,29 +81,32 @@ contract BalancerSwapper is ControllableV3, ISwapper {
     (IERC20[] memory tokens,
     uint256[] memory balances,) = IBVault(balancerVault).getPoolTokens(poolId);
 
-    require(tokens.length == 2, 'Wrong pool tokens length');
-    require(
-      (tokens[0] == IERC20(tokenIn) && tokens[1] == IERC20(tokenOut)) ||
-      (tokens[1] == IERC20(tokenIn) && tokens[0] == IERC20(tokenOut)),
-      'Wrong pool tokens'
-    );
-
     uint256[] memory weights = IBWeightedPoolMinimal(pool).getNormalizedWeights();
-    require(weights.length == 2, 'Wrong pool weights length');
 
-    bool direct = tokens[0] == IERC20(tokenIn);
+    uint tokenInIndex;
+    uint tokenOutIndex;
 
-    (uint weightIn, uint weightOut) = direct ?
-      (weights[0], weights[1]) : (weights[1], weights[0]);
+    uint len = tokens.length;
 
-    (uint balanceIn, uint balanceOut) = direct ?
-      (balances[0], balances[1]) : (balances[1], balances[0]);
+    for (uint i = 0; i < len; i++) {
+      if (address(tokens[i]) == tokenIn) {
+        tokenInIndex = i;
+        break;
+      }
+    }
+
+    for (uint i = 0; i < len; i++) {
+      if (address(tokens[i]) == tokenOut) {
+        tokenOutIndex = i;
+        break;
+      }
+    }
 
     return WeightedMath._calcOutGivenIn(
-      balanceIn,
-      weightIn,
-      balanceOut,
-      weightOut,
+      balances[tokenInIndex],
+      weights[tokenInIndex],
+      balances[tokenOutIndex],
+      weights[tokenOutIndex],
       amount
     );
   }

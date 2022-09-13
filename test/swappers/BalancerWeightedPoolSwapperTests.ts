@@ -3,7 +3,7 @@ import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {expect} from "chai";
 import {
   Controller,
-  BalancerSwapper,
+  BalancerWeightedPoolSwapper,
   MockToken,
   WeightedPool,
   Vault,
@@ -13,13 +13,13 @@ import {TimeUtils} from "../TimeUtils";
 import {DeployerUtils} from "../../scripts/utils/DeployerUtils";
 
 
-describe("BalancerSwapperTests", function () {
+describe("BalancerWeightedPoolSwapperTests", function () {
   let snapshotBefore: string;
   let snapshot: string;
   let signer: SignerWithAddress;
   let signer2: SignerWithAddress;
   let controller: Controller;
-  let swapper: BalancerSwapper;
+  let swapper: BalancerWeightedPoolSwapper;
   let vault: Vault;
 
   let weth: MockToken;
@@ -35,7 +35,7 @@ describe("BalancerSwapperTests", function () {
     const balancerCore = await DeployerUtils.deployBalancer(signer);
     vault = balancerCore.vault;
 
-    swapper = await DeployerUtils.deployBalancerSwapper(signer, controller.address, vault.address);
+    swapper = await DeployerUtils.deployBalancerWeightedPoolSwapper(signer, controller.address, vault.address);
 
     weth = await DeployerUtils.deployMockToken(signer, 'WETH');
     bal = await DeployerUtils.deployMockToken(signer, 'BAL', 18, '1000000000');

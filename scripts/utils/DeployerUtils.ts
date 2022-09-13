@@ -8,7 +8,7 @@ import {Libraries} from "hardhat-deploy/dist/types";
 import {parseEther, parseUnits} from "ethers/lib/utils";
 import {
   Authorizer,
-  BalancerSwapper__factory,
+  BalancerWeightedPoolSwapper__factory,
   Controller,
   DystFactory,
   DystopiaSwapper,
@@ -130,9 +130,9 @@ export class DeployerUtils {
     return swapper;
   }
 
-  public static async deployBalancerSwapper(signer: SignerWithAddress, controller: string, balancerVault: string) {
-    const proxy = await DeployerUtils.deployProxy(signer, 'BalancerSwapper')
-    const swapper = BalancerSwapper__factory.connect(proxy, signer);
+  public static async deployBalancerWeightedPoolSwapper(signer: SignerWithAddress, controller: string, balancerVault: string) {
+    const proxy = await DeployerUtils.deployProxy(signer, 'BalancerWeightedPoolSwapper')
+    const swapper = BalancerWeightedPoolSwapper__factory.connect(proxy, signer);
     await RunHelper.runAndWait(() => swapper.init(controller, balancerVault, {gasLimit: 8_000_000}))
     return swapper;
   }
