@@ -1,6 +1,6 @@
 import {ethers, web3} from "hardhat";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {BigNumber, ContractFactory, utils} from "ethers";
+import {BigNumber, BigNumberish, ContractFactory, utils} from "ethers";
 import {Misc} from "./Misc";
 import logSettings from "../../log_settings";
 import {Logger} from "tslog";
@@ -9,6 +9,7 @@ import {parseEther, parseUnits} from "ethers/lib/utils";
 import {
   Authorizer,
   BalancerWeightedPoolSwapper__factory,
+  BalancerStablePoolSwapper__factory,
   Controller,
   DystFactory,
   DystopiaSwapper,
@@ -17,10 +18,15 @@ import {
   ProxyControlled,
   TetuLiquidator__factory,
   Uni2Swapper__factory,
-  UniswapV2Factory, Vault, Vault__factory, WeightedPool
+  UniswapV2Factory,
+  Vault,
+  Vault__factory,
+  WeightedPool,
+  StablePool
 } from "../../typechain";
 import {VerifyUtils} from "./VerifyUtils";
 import {RunHelper} from "./RunHelper";
+import {isBigNumber} from "hardhat/common";
 
 // tslint:disable-next-line:no-var-requires
 const hre = require("hardhat");
@@ -140,6 +146,13 @@ export class DeployerUtils {
     return swapper;
   }
 
+  public static async deployBalancerStablePoolSwapper(signer: SignerWithAddress, controller: string, balancerVault: string) {
+    const proxy = await DeployerUtils.deployProxy(signer, 'BalancerStablePoolSwapper')
+    const swapper = BalancerStablePoolSwapper__factory.connect(proxy, signer);
+    await RunHelper.runAndWait(() => swapper.init(controller, balancerVault, {gasLimit: 8_000_000}))
+    return swapper;
+  }
+
   public static async deployUniswap(signer: SignerWithAddress) {
     const factory = await DeployerUtils.deployContract(signer, 'UniswapV2Factory', signer.address) as UniswapV2Factory;
     const netToken = (await DeployerUtils.deployMockToken(signer, 'WETH')).address.toLowerCase();
@@ -242,6 +255,64 @@ export class DeployerUtils {
     const poolId = await weightedPool.getPoolId();
     await vault.joinPool(poolId, signer.address, signer.address, joinPoolRequest);
     return weightedPool;
+  }
+
+  public static async deployAndInitBalancerStablePool(
+    signer: SignerWithAddress,
+    vaultAddress: string,
+    tokens: MockToken[],
+    initialBalanceUnits = '100000',
+    swapFee = parseEther('0.0004'),
+    amplificationParameter = BigNumber.from('60'),
+    pauseWindowDuration = PAUSE_WINDOW_DURATION,
+    bufferPeriodDuration = BUFFER_PERIOD_DURATION
+  ) {
+
+    const tokensSorted = tokens.sort((a, b) => a.address > b.address ? 1 : -1);
+    const tokenAddressesSorted = tokensSorted.map(t => t.address);
+
+    const stablePoolParams = [
+      vaultAddress,
+      'Balancer Stable Pool',
+      'B-STABLE',
+      tokenAddressesSorted,
+      amplificationParameter,
+      swapFee,
+      pauseWindowDuration,
+      bufferPeriodDuration,
+      signer.address
+    ];
+
+    const stablePool = await DeployerUtils.deployContract(signer, 'StablePool',
+      ...stablePoolParams) as StablePool;
+
+    const vault = await Vault__factory.connect(vaultAddress, signer);
+
+    const initialBalances : BigNumberish[] = [];
+    for (const token of tokensSorted) {
+      const decimals = await token.decimals();
+      const initialBalance = parseUnits(initialBalanceUnits, decimals);
+      await token.approve(vaultAddress, initialBalance);
+      initialBalances.push(initialBalance);
+    }
+
+    const JOIN_KIND_INIT = 0;
+
+    const initUserData = ethers.utils.defaultAbiCoder.encode(
+      ["uint256", "uint256[]"],
+      [JOIN_KIND_INIT, initialBalances]
+    );
+
+    const joinPoolRequest = {
+      assets: tokenAddressesSorted,
+      maxAmountsIn: initialBalances,
+      userData: initUserData,
+      fromInternalBalance: false
+    }
+
+    const poolId = await stablePool.getPoolId();
+    await vault.joinPool(poolId, signer.address, signer.address, joinPoolRequest);
+    return stablePool;
   }
 
 }

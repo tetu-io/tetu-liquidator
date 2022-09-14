@@ -7,10 +7,10 @@ import "../interfaces/IERC20.sol";
 import "../interfaces/IERC20Metadata.sol";
 import "../interfaces/ISwapper.sol";
 import "../interfaces/IBVault.sol";
-import "../interfaces/IBWeightedPoolMinimal.sol";
+import "../interfaces/IBStablePoolMinimal.sol";
 import "../proxy/ControllableV3.sol";
 import "../openzeppelin/Math.sol";
-import "../lib/WeightedMath.sol";
+import "../lib/StableMath.sol";
 
 /// @title Swap tokens via Balancer Stable Pools.
 /// @author bogdoslav
@@ -74,14 +74,12 @@ contract BalancerStablePoolSwapper is ControllableV3, ISwapper {
     uint amount
   ) public view override returns (uint) {
     { // take pool commission
-      uint swapFeePercentage = IBWeightedPoolMinimal(pool).getSwapFeePercentage();
+      uint swapFeePercentage = IBStablePoolMinimal(pool).getSwapFeePercentage();
       amount -= amount * swapFeePercentage / 10**18;
     }
-    bytes32 poolId = IBWeightedPoolMinimal(pool).getPoolId();
+    bytes32 poolId = IBStablePoolMinimal(pool).getPoolId();
     (IERC20[] memory tokens,
     uint256[] memory balances,) = IBVault(balancerVault).getPoolTokens(poolId);
-
-    uint256[] memory weights = IBWeightedPoolMinimal(pool).getNormalizedWeights();
 
     uint tokenInIndex = type(uint256).max;
     uint tokenOutIndex = type(uint256).max;
@@ -105,12 +103,15 @@ contract BalancerStablePoolSwapper is ControllableV3, ISwapper {
     require(tokenInIndex < len, 'Wrong tokenIn');
     require(tokenOutIndex < len, 'Wrong tokenOut');
 
-    return WeightedMath._calcOutGivenIn(
-      balances[tokenInIndex],
-      weights[tokenInIndex],
-      balances[tokenOutIndex],
-      weights[tokenOutIndex],
-      amount
+    (uint256 currentAmp,,) = IBStablePoolMinimal(pool).getAmplificationParameter();
+    uint256 invariant = StableMath._calculateInvariant(currentAmp, balances, true);
+    return StableMath._calcOutGivenIn(
+      currentAmp,
+      balances,
+      tokenInIndex,
+      tokenOutIndex,
+      amount,
+      invariant
     );
   }
 
@@ -143,7 +144,7 @@ contract BalancerStablePoolSwapper is ControllableV3, ISwapper {
 
     // Initializing each struct field one-by-one uses less gas than setting all at once.
     IBVault.SingleSwap memory singleSwap;
-    singleSwap.poolId = IBWeightedPoolMinimal(pool).getPoolId();
+    singleSwap.poolId = IBStablePoolMinimal(pool).getPoolId();
     singleSwap.kind = IBVault.SwapKind.GIVEN_IN;
     singleSwap.assetIn = IAsset(address(tokenIn));
     singleSwap.assetOut = IAsset(address(tokenOut));
