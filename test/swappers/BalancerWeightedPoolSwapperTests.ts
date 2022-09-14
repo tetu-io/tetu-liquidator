@@ -24,6 +24,7 @@ describe("BalancerWeightedPoolSwapperTests", function () {
 
   let weth: MockToken;
   let bal: MockToken;
+  let matic: MockToken;
 
   let weightedPool: WeightedPool;
 
@@ -48,6 +49,8 @@ describe("BalancerWeightedPoolSwapperTests", function () {
       // Initially 1WETH = 100BAL
       [parseEther('200000'), parseEther('80000000')]
     );
+
+    matic = await DeployerUtils.deployMockToken(signer, 'WMATIC');
   });
 
   after(async function () {
@@ -100,6 +103,18 @@ describe("BalancerWeightedPoolSwapperTests", function () {
       signer.address,
       0
     )).revertedWith('!PRICE');
+  });
+
+  it("swap price tokenIn revert", async () => {
+    await expect(
+      swapper.getPrice(weightedPool.address, matic.address, bal.address, parseUnits('1'))
+    ).revertedWith('Wrong tokenIn');
+  });
+
+  it("swap price tokenIn revert", async () => {
+    await expect(
+      swapper.getPrice(weightedPool.address, weth.address, matic.address, parseUnits('1'))
+    ).revertedWith('Wrong tokenOut');
   });
 
   it("get price test", async () => {

@@ -83,8 +83,8 @@ contract BalancerWeightedPoolSwapper is ControllableV3, ISwapper {
 
     uint256[] memory weights = IBWeightedPoolMinimal(pool).getNormalizedWeights();
 
-    uint tokenInIndex;
-    uint tokenOutIndex;
+    uint tokenInIndex = type(uint256).max;
+    uint tokenOutIndex = type(uint256).max;
 
     uint len = tokens.length;
 
@@ -101,6 +101,9 @@ contract BalancerWeightedPoolSwapper is ControllableV3, ISwapper {
         break;
       }
     }
+
+    require(tokenInIndex < len, 'Wrong tokenIn');
+    require(tokenOutIndex < len, 'Wrong tokenOut');
 
     return WeightedMath._calcOutGivenIn(
       balances[tokenInIndex],

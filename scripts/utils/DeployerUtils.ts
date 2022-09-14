@@ -181,6 +181,17 @@ export class DeployerUtils {
     }
   }
 
+  /**
+   *
+   * @param signer
+   * @param vaultAddress
+   * @param tokens array of token addresses. must be sorted.
+   * @param normalizedWeights
+   * @param initialBalances
+   * @param swapFee
+   * @param pauseWindowDuration
+   * @param bufferPeriodDuration
+   */
   public static async deployAndInitBalancerWeightedPool(
     signer: SignerWithAddress,
     vaultAddress: string,
