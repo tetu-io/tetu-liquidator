@@ -12,9 +12,9 @@ import "../proxy/ControllableV3.sol";
 import "../openzeppelin/Math.sol";
 import "../lib/WeightedMath.sol";
 
-/// @title Swap tokens via Balancer Weighted Pools.
+/// @title Swap tokens via Balancer Stable Pools.
 /// @author bogdoslav
-contract BalancerWeightedPoolSwapper is ControllableV3, ISwapper {
+contract BalancerStablePoolSwapper is ControllableV3, ISwapper {
   using SafeERC20 for IERC20;
   address public balancerVault;
 
@@ -23,7 +23,7 @@ contract BalancerWeightedPoolSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant BALANCER_WEIGHTED_POOL_SWAPPER_VERSION = "1.0.0";
+  string public constant BALANCER_STABLE_POOL_SWAPPER_VERSION = "1.0.0";
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
 
   uint private constant _LIMIT = 1;
