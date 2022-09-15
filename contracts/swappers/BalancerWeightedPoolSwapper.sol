@@ -153,8 +153,7 @@ contract BalancerWeightedPoolSwapper is ControllableV3, ISwapper {
     // scope for checking price impact
     uint amountOutMax;
     {
-      uint tokenInDecimals = IERC20Metadata(tokenIn).decimals();
-      uint minimalAmount = 10 ** (tokenInDecimals - 6);
+      uint minimalAmount = amountIn / 1000;
       uint price = getPrice(pool, tokenIn, tokenOut, minimalAmount);
       amountOutMax = price * amountIn / minimalAmount;
     }
@@ -164,7 +163,8 @@ contract BalancerWeightedPoolSwapper is ControllableV3, ISwapper {
 
     require(amountOutMax < amountOut ||
       (amountOutMax - amountOut) * PRICE_IMPACT_DENOMINATOR / amountOutMax <= priceImpactTolerance,
-      "!PRICE");
+      "!PRICE"
+    );
 
     emit Swap(
       pool,
