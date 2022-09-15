@@ -26,7 +26,6 @@ import {
 } from "../../typechain";
 import {VerifyUtils} from "./VerifyUtils";
 import {RunHelper} from "./RunHelper";
-import {isBigNumber} from "hardhat/common";
 
 // tslint:disable-next-line:no-var-requires
 const hre = require("hardhat");
@@ -263,7 +262,7 @@ export class DeployerUtils {
     tokens: MockToken[],
     initialBalanceUnits = '100000',
     swapFee = parseEther('0.0004'),
-    amplificationParameter = BigNumber.from('60'),
+    amplificationParameter = BigNumber.from('200'), // 60
     pauseWindowDuration = PAUSE_WINDOW_DURATION,
     bufferPeriodDuration = BUFFER_PERIOD_DURATION
   ) {
@@ -285,6 +284,8 @@ export class DeployerUtils {
 
     const stablePool = await DeployerUtils.deployContract(signer, 'StablePool',
       ...stablePoolParams) as StablePool;
+
+    // Initialize stable pool
 
     const vault = await Vault__factory.connect(vaultAddress, signer);
 

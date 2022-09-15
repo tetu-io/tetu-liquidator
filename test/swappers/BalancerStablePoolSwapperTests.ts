@@ -11,7 +11,6 @@ import {
 import {parseUnits} from "ethers/lib/utils";
 import {TimeUtils} from "../TimeUtils";
 import {DeployerUtils} from "../../scripts/utils/DeployerUtils";
-import {BigNumber} from "ethers";
 
 
 describe("BalancerStablePoolSwapperTests", function () {
@@ -27,9 +26,10 @@ describe("BalancerStablePoolSwapperTests", function () {
   let usdt: MockToken;
   let mai: MockToken;
   let dai: MockToken;
-  let vtoken: MockToken;
+  let wrongToken: MockToken;
 
-  const one6decimals = parseUnits('1', 6);
+  const usdDecimals = 6;
+  const oneStablDec = parseUnits('1', usdDecimals);
 
   let stablePool: StablePool;
 
@@ -43,12 +43,13 @@ describe("BalancerStablePoolSwapperTests", function () {
 
     swapper = await DeployerUtils.deployBalancerStablePoolSwapper(signer, controller.address, vault.address);
 
-    usdc = await DeployerUtils.deployMockToken(signer, 'USDC', 6);
-    usdt = await DeployerUtils.deployMockToken(signer, 'USDT', 6);
+    usdc = await DeployerUtils.deployMockToken(signer, 'USDC', usdDecimals);
+    usdt = await DeployerUtils.deployMockToken(signer, 'USDT', usdDecimals);
     mai = await DeployerUtils.deployMockToken(signer, 'miMATIC');
     dai = await DeployerUtils.deployMockToken(signer, 'DAI');
 
-    vtoken = await DeployerUtils.deployMockToken(signer, 'VTOKEN');
+    // token for testing wrong tokens
+    wrongToken = await DeployerUtils.deployMockToken(signer, 'WTOKEN');
 
     stablePool = await DeployerUtils.deployAndInitBalancerStablePool(
       signer,
@@ -73,21 +74,21 @@ describe("BalancerStablePoolSwapperTests", function () {
 
   it("swap test", async () => {
     const balance = await usdc.balanceOf(signer.address);
-    await usdt.transfer(swapper.address, one6decimals)
+    await usdt.transfer(swapper.address, oneStablDec)
     await swapper.swap(
       stablePool.address,
       usdt.address,
       usdc.address,
       signer.address,
-      6_000
+      5_000
     );
     const balAfter = await usdc.balanceOf(signer.address);
-    expect(balAfter.sub(balance)).above(parseUnits('0.99', 6));
+    expect(balAfter.sub(balance)).above(parseUnits('0.99', usdDecimals));
   });
 
   it("swap test reverse", async () => {
     const balance = await usdt.balanceOf(signer.address);
-    await usdc.transfer(swapper.address, one6decimals)
+    await usdc.transfer(swapper.address, oneStablDec)
     await swapper.swap(
       stablePool.address,
       usdc.address,
@@ -96,11 +97,11 @@ describe("BalancerStablePoolSwapperTests", function () {
       10_000
     );
     const balAfter = await usdt.balanceOf(signer.address);
-    expect(balAfter.sub(balance)).above(parseUnits('0.99', 6));
+    expect(balAfter.sub(balance)).above(parseUnits('0.99', usdDecimals));
   });
 
   it("swap price impact revert", async () => {
-    await usdc.transfer(swapper.address, one6decimals.mul(1000))
+    await usdc.transfer(swapper.address, oneStablDec.mul(1000))
     await expect(swapper.swap(
       stablePool.address,
       usdc.address,
@@ -112,30 +113,30 @@ describe("BalancerStablePoolSwapperTests", function () {
 
   it("swap price tokenIn revert", async () => {
     await expect(
-      swapper.getPrice(stablePool.address, vtoken.address, usdt.address, one6decimals)
+      swapper.getPrice(stablePool.address, wrongToken.address, usdt.address, oneStablDec)
     ).revertedWith('Wrong tokenIn');
   });
 
   it("swap price tokenOut revert", async () => {
     await expect(
-      swapper.getPrice(stablePool.address, usdc.address, vtoken.address, one6decimals)
+      swapper.getPrice(stablePool.address, usdc.address, wrongToken.address, oneStablDec)
     ).revertedWith('Wrong tokenOut');
   });
 
   it("get price test", async () => {
     expect(
-      await swapper.getPrice(stablePool.address, usdc.address, dai.address, one6decimals)
-    ).eq(parseUnits('0.99'));
+      await swapper.getPrice(stablePool.address, usdc.address, dai.address, oneStablDec)
+    ).eq(parseUnits('0.999599950288551326'));
   });
 
   it("get price test reverse", async () => {
     expect(
       await swapper.getPrice(stablePool.address, dai.address, usdc.address, parseUnits('1'))
-    ).eq(parseUnits('0.99', 6));
+    ).eq(parseUnits('0.999599', usdDecimals));
   });
 
   it("get price eq queryBatchSwap", async () => {
-    const amount = one6decimals.mul(100);
+    const amount = oneStablDec.mul(100);
 
     const poolId = await stablePool.getPoolId();
 

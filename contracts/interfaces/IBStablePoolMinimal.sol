@@ -22,5 +22,5 @@ interface IBStablePoolMinimal {
     function getPoolId() external view returns (bytes32);
     function getSwapFeePercentage() external view returns (uint256);
     function getAmplificationParameter() external view returns (uint256 value, bool isUpdating, uint256 precision);
-
+    function getScalingFactors() external view returns (uint256[] memory);
 }
