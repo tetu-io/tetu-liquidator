@@ -11,6 +11,7 @@ import "../interfaces/IBStablePoolMinimal.sol";
 import "../proxy/ControllableV3.sol";
 import "../openzeppelin/Math.sol";
 import "../lib/StableMath.sol";
+import "../lib/ScaleLib.sol";
 
 import "hardhat/console.sol";
 
@@ -107,10 +108,10 @@ contract BalancerStablePoolSwapper is ControllableV3, ISwapper {
 
     (uint currentAmp,,) = IBStablePoolMinimal(pool).getAmplificationParameter();
     uint[] memory scalingFactors = IBStablePoolMinimal(pool).getScalingFactors();
-    _upscaleArray(balances, scalingFactors);
+    ScaleLib._upscaleArray(balances, scalingFactors);
     {
     uint invariant = StableMath._calculateInvariant(currentAmp, balances, true);
-    uint upscaledAmount = _upscale(amount, scalingFactors[tokenInIndex]);
+    uint upscaledAmount = ScaleLib._upscale(amount, scalingFactors[tokenInIndex]);
 
     uint amountOutUpscaled = StableMath._calcOutGivenIn(
       currentAmp,
@@ -120,29 +121,7 @@ contract BalancerStablePoolSwapper is ControllableV3, ISwapper {
       upscaledAmount,
       invariant
     );
-    return _downscaleDown(amountOutUpscaled, scalingFactors[tokenOutIndex]);
-    }
-  }
-
-  function _upscale(uint256 amount, uint256 scalingFactor) internal pure returns (uint256) {
-    return FixedPoint.mulDown(amount, scalingFactor);
-  }
-
-  function _upscaleArray(uint[] memory amounts, uint[] memory scalingFactors) internal view {
-    uint len = amounts.length;
-    for (uint i = 0; i < len; ++i) {
-      amounts[i] = FixedPoint.mulDown(amounts[i], scalingFactors[i]);
-    }
-  }
-
-  function _downscaleDown(uint256 amount, uint256 scalingFactor) internal pure returns (uint256) {
-    return FixedPoint.divDown(amount, scalingFactor);
-  }
-
-  function _downscaleDownArray(uint256[] memory amounts, uint256[] memory scalingFactors) internal view {
-    uint len = amounts.length;
-    for (uint256 i = 0; i < len; ++i) {
-      amounts[i] = FixedPoint.divDown(amounts[i], scalingFactors[i]);
+    return ScaleLib._downscaleDown(amountOutUpscaled, scalingFactors[tokenOutIndex]);
     }
   }
 

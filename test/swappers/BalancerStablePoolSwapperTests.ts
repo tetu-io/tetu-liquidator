@@ -29,7 +29,7 @@ describe("BalancerStablePoolSwapperTests", function () {
   let wrongToken: MockToken;
 
   const usdDecimals = 6;
-  const oneStablDec = parseUnits('1', usdDecimals);
+  const oneUSD = parseUnits('1', usdDecimals);
 
   let stablePool: StablePool;
 
@@ -74,7 +74,7 @@ describe("BalancerStablePoolSwapperTests", function () {
 
   it("swap test", async () => {
     const balance = await usdc.balanceOf(signer.address);
-    await usdt.transfer(swapper.address, oneStablDec)
+    await usdt.transfer(swapper.address, oneUSD)
     await swapper.swap(
       stablePool.address,
       usdt.address,
@@ -88,7 +88,7 @@ describe("BalancerStablePoolSwapperTests", function () {
 
   it("swap test reverse", async () => {
     const balance = await usdt.balanceOf(signer.address);
-    await usdc.transfer(swapper.address, oneStablDec)
+    await usdc.transfer(swapper.address, oneUSD)
     await swapper.swap(
       stablePool.address,
       usdc.address,
@@ -101,7 +101,7 @@ describe("BalancerStablePoolSwapperTests", function () {
   });
 
   it("swap price impact revert", async () => {
-    await usdc.transfer(swapper.address, oneStablDec.mul(1000))
+    await usdc.transfer(swapper.address, oneUSD.mul(1000))
     await expect(swapper.swap(
       stablePool.address,
       usdc.address,
@@ -113,19 +113,19 @@ describe("BalancerStablePoolSwapperTests", function () {
 
   it("swap price tokenIn revert", async () => {
     await expect(
-      swapper.getPrice(stablePool.address, wrongToken.address, usdt.address, oneStablDec)
+      swapper.getPrice(stablePool.address, wrongToken.address, usdt.address, oneUSD)
     ).revertedWith('Wrong tokenIn');
   });
 
   it("swap price tokenOut revert", async () => {
     await expect(
-      swapper.getPrice(stablePool.address, usdc.address, wrongToken.address, oneStablDec)
+      swapper.getPrice(stablePool.address, usdc.address, wrongToken.address, oneUSD)
     ).revertedWith('Wrong tokenOut');
   });
 
   it("get price test", async () => {
     expect(
-      await swapper.getPrice(stablePool.address, usdc.address, dai.address, oneStablDec)
+      await swapper.getPrice(stablePool.address, usdc.address, dai.address, oneUSD)
     ).eq(parseUnits('0.999599950288551326'));
   });
 
@@ -136,7 +136,7 @@ describe("BalancerStablePoolSwapperTests", function () {
   });
 
   it("get price eq queryBatchSwap", async () => {
-    const amount = oneStablDec.mul(100);
+    const amount = oneUSD.mul(100);
 
     const poolId = await stablePool.getPoolId();
 
