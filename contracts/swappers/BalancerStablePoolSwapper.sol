@@ -13,8 +13,6 @@ import "../openzeppelin/Math.sol";
 import "../lib/StableMath.sol";
 import "../lib/ScaleLib.sol";
 
-import "hardhat/console.sol";
-
 /// @title Swap tokens via Balancer Stable Pools.
 /// @author bogdoslav
 contract BalancerStablePoolSwapper is ControllableV3, ISwapper {
@@ -171,7 +169,6 @@ contract BalancerStablePoolSwapper is ControllableV3, ISwapper {
 
     IERC20(tokenIn).approve(balancerVault, amountIn);
     uint amountOut = IBVault(balancerVault).swap(singleSwap, funds, _LIMIT, block.timestamp);
-      console.log('amountOut    ', amountOut);
 
     require(amountOutMax < amountOut ||
       (amountOutMax - amountOut) * PRICE_IMPACT_DENOMINATOR / amountOutMax <= priceImpactTolerance,
