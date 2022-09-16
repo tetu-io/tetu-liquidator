@@ -3,9 +3,9 @@ import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {expect} from "chai";
 import {
   Controller,
-  BalancerWeightedPoolSwapper,
+  BalancerStablePoolSwapper,
   MockToken,
-  WeightedPool,
+  StablePool,
   Vault,
 } from "../../typechain";
 import {parseUnits} from "ethers/lib/utils";
@@ -13,23 +13,25 @@ import {TimeUtils} from "../TimeUtils";
 import {DeployerUtils} from "../../scripts/utils/DeployerUtils";
 
 
-describe("BalancerWeightedPoolSwapperTests", function () {
+describe("BalancerStablePoolSwapperTests", function () {
   let snapshotBefore: string;
   let snapshot: string;
   let signer: SignerWithAddress;
   let signer2: SignerWithAddress;
   let controller: Controller;
-  let swapper: BalancerWeightedPoolSwapper;
+  let swapper: BalancerStablePoolSwapper;
   let vault: Vault;
 
   let usdc: MockToken;
-  let bal: MockToken;
-  let matic: MockToken;
+  let usdt: MockToken;
+  let mai: MockToken;
+  let dai: MockToken;
+  let wrongToken: MockToken;
 
   const usdDecimals = 6;
   const oneUSD = parseUnits('1', usdDecimals);
 
-  let weightedPool: WeightedPool;
+  let stablePool: StablePool;
 
   before(async function () {
     snapshotBefore = await TimeUtils.snapshot();
@@ -39,21 +41,22 @@ describe("BalancerWeightedPoolSwapperTests", function () {
     const balancerCore = await DeployerUtils.deployBalancer(signer);
     vault = balancerCore.vault;
 
-    swapper = await DeployerUtils.deployBalancerWeightedPoolSwapper(signer, controller.address, vault.address);
+    swapper = await DeployerUtils.deployBalancerStablePoolSwapper(signer, controller.address, vault.address);
 
     usdc = await DeployerUtils.deployMockToken(signer, 'USDC', usdDecimals);
-    bal = await DeployerUtils.deployMockToken(signer, 'BAL', 18, '1000000000');
+    usdt = await DeployerUtils.deployMockToken(signer, 'USDT', usdDecimals);
+    mai = await DeployerUtils.deployMockToken(signer, 'miMATIC');
+    dai = await DeployerUtils.deployMockToken(signer, 'DAI');
 
-    weightedPool = await DeployerUtils.deployAndInitBalancerWeightedPool(
+    // token for testing wrong tokens
+    wrongToken = await DeployerUtils.deployMockToken(signer, 'WTOKEN');
+
+    stablePool = await DeployerUtils.deployAndInitBalancerStablePool(
       signer,
       vault.address,
-      [usdc, bal],
-      [parseUnits('0.2'), parseUnits('0.8')],
-      // Initially 1USDC = 100BAL
-      [parseUnits('200000', usdDecimals), parseUnits('80000000')]
+      [usdc, usdt, mai, dai],
     );
 
-    matic = await DeployerUtils.deployMockToken(signer, 'WMATIC');
   });
 
   after(async function () {
@@ -71,39 +74,39 @@ describe("BalancerWeightedPoolSwapperTests", function () {
 
   it("swap test", async () => {
     const balance = await usdc.balanceOf(signer.address);
-    await bal.transfer(swapper.address, parseUnits('100'))
+    await usdt.transfer(swapper.address, oneUSD)
     await swapper.swap(
-      weightedPool.address,
-      bal.address,
+      stablePool.address,
+      usdt.address,
       usdc.address,
       signer.address,
-      6_000
+      5_000
     );
     const balAfter = await usdc.balanceOf(signer.address);
     expect(balAfter.sub(balance)).above(parseUnits('0.99', usdDecimals));
   });
 
   it("swap test reverse", async () => {
-    const balance = await bal.balanceOf(signer.address);
+    const balance = await usdt.balanceOf(signer.address);
     await usdc.transfer(swapper.address, oneUSD)
     await swapper.swap(
-      weightedPool.address,
+      stablePool.address,
       usdc.address,
-      bal.address,
+      usdt.address,
       signer.address,
       10_000
     );
-    const balAfter = await bal.balanceOf(signer.address);
-    expect(balAfter.sub(balance)).above(parseUnits('99'));
+    const balAfter = await usdt.balanceOf(signer.address);
+    expect(balAfter.sub(balance)).above(parseUnits('0.99', usdDecimals));
   });
 
   it("swap price impact revert", async () => {
-    await usdc.transfer(swapper.address, oneUSD.mul('10000'));
+    await usdc.transfer(swapper.address, oneUSD.mul(1000))
     await expect(
       swapper.swap(
-        weightedPool.address,
+        stablePool.address,
         usdc.address,
-        bal.address,
+        usdt.address,
         signer.address,
         0
       )
@@ -112,44 +115,44 @@ describe("BalancerWeightedPoolSwapperTests", function () {
 
   it("init with zero address should revert", async () => {
     expect(
-      DeployerUtils.deployBalancerWeightedPoolSwapper(signer, controller.address, ethers.constants.AddressZero)
+      DeployerUtils.deployBalancerStablePoolSwapper(signer, controller.address, ethers.constants.AddressZero)
     ).revertedWith('Zero balancerVault');
   });
 
   it("init with non zero address should not revert", async () => {
     expect(
-      await DeployerUtils.deployBalancerWeightedPoolSwapper(signer, controller.address, vault.address)
+      await DeployerUtils.deployBalancerStablePoolSwapper(signer, controller.address, vault.address)
     ).is.not.eq(ethers.constants.AddressZero);
   });
 
   it("swap price tokenIn revert", async () => {
     await expect(
-      swapper.getPrice(weightedPool.address, matic.address, bal.address, parseUnits('1'))
+      swapper.getPrice(stablePool.address, wrongToken.address, usdt.address, oneUSD)
     ).revertedWith('Wrong tokenIn');
   });
 
   it("swap price tokenOut revert", async () => {
     await expect(
-      swapper.getPrice(weightedPool.address, usdc.address, matic.address, oneUSD)
+      swapper.getPrice(stablePool.address, usdc.address, wrongToken.address, oneUSD)
     ).revertedWith('Wrong tokenOut');
   });
 
   it("get price test", async () => {
     expect(
-      await swapper.getPrice(weightedPool.address, usdc.address, bal.address, oneUSD)
-    ).eq(parseUnits('99.7496882616'));
+      await swapper.getPrice(stablePool.address, usdc.address, dai.address, oneUSD)
+    ).eq(parseUnits('0.999599950288551326'));
   });
 
   it("get price test reverse", async () => {
     expect(
-      await swapper.getPrice(weightedPool.address, bal.address, usdc.address, parseUnits('100'))
-    ).eq(parseUnits('0.997496', usdDecimals));
+      await swapper.getPrice(stablePool.address, dai.address, usdc.address, parseUnits('1'))
+    ).eq(parseUnits('0.999599', usdDecimals));
   });
 
   it("get price eq queryBatchSwap", async () => {
-    const amount = parseUnits('100', usdDecimals);
+    const amount = oneUSD.mul(100);
 
-    const poolId = await weightedPool.getPoolId();
+    const poolId = await stablePool.getPoolId();
 
     const batchSwapStep = {
       poolId,
@@ -171,11 +174,11 @@ describe("BalancerWeightedPoolSwapperTests", function () {
     const [, balDelta] = await vault.callStatic.queryBatchSwap(
       SWAP_KIND_GIVEN_IN,
       [batchSwapStep],
-      [usdc.address, bal.address],
+      [usdc.address, usdt.address],
       funds
     );
 
-    const price = await swapper.getPrice(weightedPool.address, usdc.address, bal.address, amount);
+    const price = await swapper.getPrice(stablePool.address, usdc.address, usdt.address, amount);
     console.log('delta', balDelta.abs()); // return value is negative delta for pool
     console.log('price', price);
     expect(price).eq(balDelta.abs());

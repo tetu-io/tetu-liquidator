@@ -39,4 +39,29 @@ library Math {
     // (a + b - 1) / b can overflow on addition, so we distribute.
     return a / b + (a % b == 0 ? 0 : 1);
   }
+
+  function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+    return a * b;
+  }
+
+  function div(
+    uint256 a,
+    uint256 b,
+    bool roundUp
+  ) internal pure returns (uint256) {
+    return roundUp ? divUp(a, b) : divDown(a, b);
+  }
+
+  function divDown(uint256 a, uint256 b) internal pure returns (uint256) {
+    return a / b;
+  }
+
+  function divUp(uint256 a, uint256 b) internal pure returns (uint256) {
+    if (a == 0) {
+      return 0;
+    } else {
+      return 1 + (a - 1) / b;
+    }
+  }
+
 }

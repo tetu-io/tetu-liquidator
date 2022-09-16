@@ -7,14 +7,15 @@ import "../interfaces/IERC20.sol";
 import "../interfaces/IERC20Metadata.sol";
 import "../interfaces/ISwapper.sol";
 import "../interfaces/IBVault.sol";
-import "../interfaces/IBWeightedPoolMinimal.sol";
+import "../interfaces/IBStablePoolMinimal.sol";
 import "../proxy/ControllableV3.sol";
 import "../openzeppelin/Math.sol";
-import "../lib/balancer-v2-solidity-utils/WeightedMath.sol";
+import "../lib/balancer-v2-solidity-utils/StableMath.sol";
+import "../lib/ScaleLib.sol";
 
-/// @title Swap tokens via Balancer Weighted Pools.
+/// @title Swap tokens via Balancer Stable Pools.
 /// @author bogdoslav
-contract BalancerWeightedPoolSwapper is ControllableV3, ISwapper {
+contract BalancerStablePoolSwapper is ControllableV3, ISwapper {
   using SafeERC20 for IERC20;
   address public balancerVault;
 
@@ -23,7 +24,7 @@ contract BalancerWeightedPoolSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant BALANCER_WEIGHTED_POOL_SWAPPER_VERSION = "1.0.0";
+  string public constant BALANCER_STABLE_POOL_SWAPPER_VERSION = "1.0.0";
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
 
   uint private constant _LIMIT = 1;
@@ -74,17 +75,15 @@ contract BalancerWeightedPoolSwapper is ControllableV3, ISwapper {
     uint amount
   ) public view override returns (uint) {
     { // take pool commission
-      uint swapFeePercentage = IBWeightedPoolMinimal(pool).getSwapFeePercentage();
+      uint swapFeePercentage = IBStablePoolMinimal(pool).getSwapFeePercentage();
       amount -= amount * swapFeePercentage / 10**18;
     }
-    bytes32 poolId = IBWeightedPoolMinimal(pool).getPoolId();
+    bytes32 poolId = IBStablePoolMinimal(pool).getPoolId();
     (IERC20[] memory tokens,
-    uint256[] memory balances,) = IBVault(balancerVault).getPoolTokens(poolId);
+    uint[] memory balances,) = IBVault(balancerVault).getPoolTokens(poolId);
 
-    uint256[] memory weights = IBWeightedPoolMinimal(pool).getNormalizedWeights();
-
-    uint tokenInIndex = type(uint256).max;
-    uint tokenOutIndex = type(uint256).max;
+    uint tokenInIndex = type(uint).max;
+    uint tokenOutIndex = type(uint).max;
 
     uint len = tokens.length;
 
@@ -105,13 +104,23 @@ contract BalancerWeightedPoolSwapper is ControllableV3, ISwapper {
     require(tokenInIndex < len, 'Wrong tokenIn');
     require(tokenOutIndex < len, 'Wrong tokenOut');
 
-    return WeightedMath._calcOutGivenIn(
-      balances[tokenInIndex],
-      weights[tokenInIndex],
-      balances[tokenOutIndex],
-      weights[tokenOutIndex],
-      amount
+    (uint currentAmp,,) = IBStablePoolMinimal(pool).getAmplificationParameter();
+    uint[] memory scalingFactors = IBStablePoolMinimal(pool).getScalingFactors();
+    ScaleLib._upscaleArray(balances, scalingFactors);
+    {
+    uint invariant = StableMath._calculateInvariant(currentAmp, balances, true);
+    uint upscaledAmount = ScaleLib._upscale(amount, scalingFactors[tokenInIndex]);
+
+    uint amountOutUpscaled = StableMath._calcOutGivenIn(
+      currentAmp,
+      balances,
+      tokenInIndex,
+      tokenOutIndex,
+      upscaledAmount,
+      invariant
     );
+    return ScaleLib._downscaleDown(amountOutUpscaled, scalingFactors[tokenOutIndex]);
+    }
   }
 
   // *************************************************************
@@ -119,7 +128,7 @@ contract BalancerWeightedPoolSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Swap given tokenIn for tokenOut. Assume that tokenIn already sent to this contract.
-  /// @param pool Balancer Weighted pool
+  /// @param pool Balancer Stable pool
   /// @param tokenIn Token for sell
   /// @param tokenOut Token for buy
   /// @param recipient Recipient for tokenOut
@@ -143,7 +152,7 @@ contract BalancerWeightedPoolSwapper is ControllableV3, ISwapper {
 
     // Initializing each struct field one-by-one uses less gas than setting all at once.
     IBVault.SingleSwap memory singleSwap;
-    singleSwap.poolId = IBWeightedPoolMinimal(pool).getPoolId();
+    singleSwap.poolId = IBStablePoolMinimal(pool).getPoolId();
     singleSwap.kind = IBVault.SwapKind.GIVEN_IN;
     singleSwap.assetIn = IAsset(address(tokenIn));
     singleSwap.assetOut = IAsset(address(tokenOut));

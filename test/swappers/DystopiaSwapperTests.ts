@@ -119,6 +119,28 @@ describe("DystopiaSwapperTests", function () {
     expect(await swapper.getPrice(tetuUsdc.address, tetu.address, usdc.address, parseUnits('1'))).eq(parseUnits('0.499747', 6));
   });
 
+  it("swap pair sync coverage", async () => {
+    const _USD_PLUS_MATIC = '0x236eeC6359fb44CCe8f97E99387aa7F8cd5cdE1f';
+    const _USD_PLUS_BSC  = '0xe80772Eaf6e2E18B651F160Bc9158b2A5caFCA65';
+    await tetu.transfer(swapper.address, parseUnits('10000'));
+
+    await expect(swapper.swap(
+      tetuUsdc.address,
+      tetu.address,
+      _USD_PLUS_MATIC,
+      signer.address,
+      0
+    )).reverted;
+
+    await expect(swapper.swap(
+      tetuUsdc.address,
+      tetu.address,
+      _USD_PLUS_BSC,
+      signer.address,
+      0
+    )).reverted;
+  });
+
 });
 
 
