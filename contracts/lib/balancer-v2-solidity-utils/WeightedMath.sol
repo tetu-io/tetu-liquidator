@@ -14,9 +14,9 @@
 
 pragma solidity 0.8.4;
 
-import "./balancer-v2-solidity-utils/math/FixedPoint.sol";
-import "../openzeppelin/Math.sol";
-import "./balancer-v2-solidity-utils/helpers/InputHelpers.sol";
+import "./math/FixedPoint.sol";
+import "./helpers/InputHelpers.sol";
+import "../../openzeppelin/Math.sol";
 
 // These functions start with an underscore, as if they were part of a contract and not a library. At some point this
 // should be fixed.

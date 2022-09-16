@@ -14,8 +14,8 @@
 
 pragma solidity 0.8.4;
 
-import "./balancer-v2-solidity-utils/math/FixedPoint.sol";
-import "../openzeppelin/Math.sol";
+import "./math/FixedPoint.sol";
+import "../../openzeppelin/Math.sol";
 
 // These functions start with an underscore, as if they were part of a contract and not a library. At some point this
 // should be fixed. Additionally, some variables have non mixed case names (e.g. P_D) that relate to the mathematical

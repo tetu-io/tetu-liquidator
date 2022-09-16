@@ -10,7 +10,7 @@ import "../interfaces/IBVault.sol";
 import "../interfaces/IBWeightedPoolMinimal.sol";
 import "../proxy/ControllableV3.sol";
 import "../openzeppelin/Math.sol";
-import "../lib/WeightedMath.sol";
+import "../lib/balancer-v2-solidity-utils/WeightedMath.sol";
 
 /// @title Swap tokens via Balancer Weighted Pools.
 /// @author bogdoslav

@@ -10,7 +10,7 @@ import "../interfaces/IBVault.sol";
 import "../interfaces/IBStablePoolMinimal.sol";
 import "../proxy/ControllableV3.sol";
 import "../openzeppelin/Math.sol";
-import "../lib/StableMath.sol";
+import "../lib/balancer-v2-solidity-utils/StableMath.sol";
 import "../lib/ScaleLib.sol";
 
 /// @title Swap tokens via Balancer Stable Pools.

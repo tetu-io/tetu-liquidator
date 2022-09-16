@@ -1,3 +1,8 @@
 module.exports = {
-  skipFiles: ['test', 'dex', 'openzeppelin']
+  skipFiles: [
+    'test',
+    'dex',
+    'openzeppelin',
+    'lib/balancer-v2-solidity-utils',
+  ]
 };

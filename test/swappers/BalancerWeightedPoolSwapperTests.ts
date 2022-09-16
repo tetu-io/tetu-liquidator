@@ -99,13 +99,27 @@ describe("BalancerWeightedPoolSwapperTests", function () {
 
   it("swap price impact revert", async () => {
     await usdc.transfer(swapper.address, oneUSD.mul('10000'));
-    await expect(swapper.swap(
-      weightedPool.address,
-      usdc.address,
-      bal.address,
-      signer.address,
-      0
-    )).revertedWith('!PRICE');
+    await expect(
+      swapper.swap(
+        weightedPool.address,
+        usdc.address,
+        bal.address,
+        signer.address,
+        0
+      )
+    ).revertedWith('!PRICE');
+  });
+
+  it("init with zero address should revert", async () => {
+    expect(
+      DeployerUtils.deployBalancerWeightedPoolSwapper(signer, controller.address, ethers.constants.AddressZero)
+    ).revertedWith('Zero balancerVault');
+  });
+
+  it("init with non zero address should not revert", async () => {
+    expect(
+      await DeployerUtils.deployBalancerWeightedPoolSwapper(signer, controller.address, vault.address)
+    ).is.not.eq(ethers.constants.AddressZero);
   });
 
   it("swap price tokenIn revert", async () => {

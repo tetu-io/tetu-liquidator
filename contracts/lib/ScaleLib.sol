@@ -25,11 +25,4 @@ library ScaleLib {
         return FixedPoint.divDown(amount, scalingFactor);
     }
 
-    function _downscaleDownArray(uint256[] memory amounts, uint256[] memory scalingFactors)
-    internal pure {
-        uint len = amounts.length;
-        for (uint256 i = 0; i < len; ++i) {
-            amounts[i] = FixedPoint.divDown(amounts[i], scalingFactors[i]);
-        }
-    }
 }
