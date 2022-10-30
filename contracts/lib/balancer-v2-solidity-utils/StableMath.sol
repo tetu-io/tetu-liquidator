@@ -108,6 +108,8 @@ library StableMath {
         }
 
         _revert(Errors.STABLE_INVARIANT_DIDNT_CONVERGE);
+        // stub revert
+        return 0;
     }
 
     // Computes how many tokens can be taken out of a pool if `tokenAmountIn` are sent, given the current balances.
@@ -514,5 +516,7 @@ library StableMath {
         }
 
         _revert(Errors.STABLE_GET_BALANCE_DIDNT_CONVERGE);
+        // stub revert
+        return 0;
     }
 }
