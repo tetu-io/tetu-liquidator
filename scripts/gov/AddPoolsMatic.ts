@@ -1,27 +1,29 @@
 import {ethers} from "hardhat";
-import {
-  IERC20Metadata__factory,
-  IUniswapV2Pair__factory,
-  TetuLiquidator__factory
-} from "../../typechain";
+import {IERC20Metadata__factory, TetuLiquidator__factory} from "../../typechain";
 import {RunHelper} from "../utils/RunHelper";
+import {MaticAddresses} from "../addresses/MaticAddresses";
+
 
 
 const LIQUIDATOR = '0xC737eaB847Ae6A92028862fE38b828db41314772';
 const UNI2_SWAPPER = '0x0089539BeCB82Ab51bc5C76F93Aa61281540fF33';
 const DYSTOPIA_SWAPPER = '0x867F88209074f4B7300e7593Cd50C05B2c02Ad01';
+const BALANCER_STABLE_SWAPPER = '0xc43e971566B8CCAb815C3E20b9dc66571541CeB4';
+const BALANCER_WEIGHTED_SWAPPER = '0x0bcbE4653e96aE39bde24312882faA0EdDF03256';
 
-const TOKENS = [
-  "0x5b0522391d0A5a37FD117fE4C43e8876FB4e91E6",
-];
-
-const POOLS = [
-  "0x370c7feb6fcd9f0804b477e3c807392e59327764",
-];
-
-const SWAPPERS = [
-  DYSTOPIA_SWAPPER,
-];
+const META: {
+  tokenIn: string,
+  tokenOut: string,
+  pool: string,
+  swapper: string,
+}[] = [
+  {
+    tokenIn: MaticAddresses.bbamUSDC_TOKEN,
+    tokenOut: MaticAddresses.USDC_TOKEN,
+    pool: '0xF93579002DBE8046c43FEfE86ec78b1112247BB8',
+    swapper: BALANCER_STABLE_SWAPPER,
+  },
+]
 
 
 async function main() {
@@ -35,19 +37,16 @@ async function main() {
     tokenIn: string;
     tokenOut: string;
   }[] = [];
-  for (let i = 0; i < POOLS.length; i++) {
-    const pool = POOLS[i];
-    const tokenIn = TOKENS[i]
-    const swapper = SWAPPERS[i]
-    const poolName = await IERC20Metadata__factory.connect(pool, signer).symbol();
+  for (const meta of META) {
+    const pool = meta.pool;
+    const tokenIn = meta.tokenIn
+    const tokenOut = meta.tokenOut
+    const swapper = meta.swapper
+    const poolName = await IERC20Metadata__factory.connect(pool, signer).name();
     const tokenInName = await IERC20Metadata__factory.connect(tokenIn, signer).symbol();
+    const tokenOutName = await IERC20Metadata__factory.connect(tokenOut, signer).symbol();
 
-    const token0 = await IUniswapV2Pair__factory.connect(pool, signer).token0();
-    const token1 = await IUniswapV2Pair__factory.connect(pool, signer).token1();
-
-    const tokenOut = token0.toLowerCase() === tokenIn.toLowerCase() ? token1 : token0;
-
-    console.log(pool, poolName, '||', tokenInName, '||', await IERC20Metadata__factory.connect(tokenOut, signer).symbol());
+    console.log(pool, poolName, '||', tokenInName, '=>', tokenOutName);
 
     pools.push(
       {

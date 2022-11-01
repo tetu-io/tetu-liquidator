@@ -21,10 +21,10 @@ const META: {
   swapper: string,
 }[] = [
   {
-    tokenIn: EthAddresses.BAL_TOKEN,
+    tokenIn: EthAddresses.wstETH_TOKEN,
     tokenOut: EthAddresses.WETH_TOKEN,
-    pool: EthAddresses.BALANCER_BAL_WETH,
-    swapper: BALANCER_WEIGHTED_SWAPPER,
+    pool: '0x32296969Ef14EB0c6d29669C550D4a0449130230',
+    swapper: BALANCER_STABLE_SWAPPER,
   },
 ]
 

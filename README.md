@@ -16,12 +16,14 @@ This solution is able to liquidate token to another token with strict predefined
 
 ## Polygon addresses
 
-| Name            | Address                                                                                                                                     |
-|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------|
-| Controller      | [0x943c56C23992b16B3D95B0C481D8fb7727e31ea8](https://polygonscan.com/address/0x943c56C23992b16B3D95B0C481D8fb7727e31ea8#readProxyContract)  |
-| Liquidator      | [0xC737eaB847Ae6A92028862fE38b828db41314772](https://polygonscan.com/address/0xC737eaB847Ae6A92028862fE38b828db41314772#readProxyContract)  |
-| UniV2Swapper    | [0x0089539BeCB82Ab51bc5C76F93Aa61281540fF33](https://polygonscan.com/address/0x0089539BeCB82Ab51bc5C76F93Aa61281540fF33#readProxyContract)  |
-| DystopiaSwapper | [0x867F88209074f4B7300e7593Cd50C05B2c02Ad01](https://polygonscan.com/address/0x867F88209074f4B7300e7593Cd50C05B2c02Ad01#readProxyContract)  |
+| Name                    | Address                                                                                                                                    |
+|-------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| Controller              | [0x943c56C23992b16B3D95B0C481D8fb7727e31ea8](https://polygonscan.com/address/0x943c56C23992b16B3D95B0C481D8fb7727e31ea8#readProxyContract) |
+| Liquidator              | [0xC737eaB847Ae6A92028862fE38b828db41314772](https://polygonscan.com/address/0xC737eaB847Ae6A92028862fE38b828db41314772#readProxyContract) |
+| UniV2Swapper            | [0x0089539BeCB82Ab51bc5C76F93Aa61281540fF33](https://polygonscan.com/address/0x0089539BeCB82Ab51bc5C76F93Aa61281540fF33#readProxyContract) |
+| DystopiaSwapper         | [0x867F88209074f4B7300e7593Cd50C05B2c02Ad01](https://polygonscan.com/address/0x867F88209074f4B7300e7593Cd50C05B2c02Ad01#readProxyContract) |
+| BalancerStableSwapper   | [0xc43e971566B8CCAb815C3E20b9dc66571541CeB4](https://polygonscan.com/address/0xc43e971566B8CCAb815C3E20b9dc66571541CeB4#readProxyContract) |
+| BalancerWeightedSwapper | [0x0bcbE4653e96aE39bde24312882faA0EdDF03256](https://polygonscan.com/address/0x0bcbE4653e96aE39bde24312882faA0EdDF03256#readProxyContract) |
 
 
 ## BSC addresses

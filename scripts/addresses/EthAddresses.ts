@@ -15,6 +15,8 @@ export class EthAddresses {
   public static WBTC_TOKEN = "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599".toLowerCase();
   public static TETU_TOKEN = "0xa0246c9032bc3a600820415ae600c6388619a14d".toLowerCase(); // todo temporally FARM
   public static veBAL_TOKEN = "0xC128a9954e6c874eA3d62ce62B468bA073093F25".toLowerCase();
+  public static LIDO_TOKEN = "0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32".toLowerCase();
+  public static wstETH_TOKEN = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0".toLowerCase();
 
 
   // balancer
