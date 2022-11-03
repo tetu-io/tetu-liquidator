@@ -138,6 +138,9 @@ describe("BalancerWeightedPoolSwapperTests", function () {
     expect(
       await swapper.getPrice(weightedPool.address, usdc.address, bal.address, oneUSD)
     ).eq(parseUnits('99.7496882616'));
+    expect(
+      (await swapper.getPriceWithImpact(weightedPool.address, usdc.address, bal.address, oneUSD)).amountOut
+    ).eq(parseUnits('99.7496882616'));
   });
 
   it("get price test reverse", async () => {
@@ -179,6 +182,31 @@ describe("BalancerWeightedPoolSwapperTests", function () {
     console.log('delta', balDelta.abs()); // return value is negative delta for pool
     console.log('price', price);
     expect(price).eq(balDelta.abs());
+  });
+
+  it("get price-with-impact test", async () => {
+    const amountToSwapHuge = oneUSD.mul('50000');
+
+    const minimalAmount = amountToSwapHuge.div(1000);
+    const priceForMinimalAmount = await swapper.getPrice(weightedPool.address, usdc.address, bal.address, minimalAmount);
+    const amountOutMax = amountToSwapHuge.mul(priceForMinimalAmount).div(minimalAmount);
+
+    const balanceBalSignerBefore = await bal.balanceOf(signer.address);
+    const {amountOut, priceImpactOut} = await swapper.getPriceWithImpact(weightedPool.address, usdc.address, bal.address, amountToSwapHuge);
+    await usdc.transfer(swapper.address, amountToSwapHuge);
+    await swapper.swap(weightedPool.address, usdc.address, bal.address, signer.address, 100_000);
+    const amountOutAfterSwap = (await bal.balanceOf(signer.address)).sub(balanceBalSignerBefore);
+
+    const ret = [
+      amountOut.toString(),
+      priceImpactOut.toString()
+    ].join();
+    const expected = [
+      amountOutAfterSwap.toString(),
+      (amountOutMax.sub(amountOutAfterSwap)).mul(100_000).div(amountOutMax).toString()
+    ].join();
+
+    expect(ret).eq(expected);
   });
 
 });

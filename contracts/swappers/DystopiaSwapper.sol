@@ -88,10 +88,7 @@ contract DystopiaSwapper is ControllableV3, ISwapper {
     uint tokenOutDecimals = IERC20Metadata(tokenOut).decimals();
 
     uint minimalAmount = 10 ** Math.max(
-      (tokenInDecimals > tokenOutDecimals
-        ? tokenInDecimals - tokenOutDecimals
-        : tokenOutDecimals - tokenInDecimals
-      ),
+      (tokenInDecimals > tokenOutDecimals ? tokenInDecimals - tokenOutDecimals : tokenOutDecimals - tokenInDecimals),
       1
     ) * 10_000;
     uint amountOutMax = IDystopiaPair(pool).getAmountOut(minimalAmount, tokenIn) * amount / minimalAmount;

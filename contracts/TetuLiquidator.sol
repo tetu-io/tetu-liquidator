@@ -161,6 +161,8 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
     for (uint i; i < route.length; i++) {
       PoolData memory data = route[i];
       (priceOut, priceImpact) = ISwapper(data.swapper).getPriceWithImpact(data.pool, data.tokenIn, data.tokenOut, priceOut);
+      // Suppose, we have a route with 3 steps, each step has 10% of price impact
+      // Result price impact is following: 10 + 90*0.1 + 81*0.1 = 27.1%
       priceImpactOut += (PRICE_IMPACT_DENOMINATOR - priceImpactOut) * priceImpact / PRICE_IMPACT_DENOMINATOR;
     }
 

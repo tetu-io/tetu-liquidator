@@ -6,7 +6,7 @@ import {
   BalancerStablePoolSwapper,
   MockToken,
   StablePool,
-  Vault,
+  Vault, IUniswapV2Pair__factory,
 } from "../../typechain";
 import {parseUnits} from "ethers/lib/utils";
 import {TimeUtils} from "../TimeUtils";
@@ -141,6 +141,9 @@ describe("BalancerStablePoolSwapperTests", function () {
     expect(
       await swapper.getPrice(stablePool.address, usdc.address, dai.address, oneUSD)
     ).eq(parseUnits('0.999599950288551326'));
+    expect(
+      (await swapper.getPriceWithImpact(stablePool.address, usdc.address, dai.address, oneUSD)).amountOut
+    ).eq(parseUnits('0.999599950288551326'));
   });
 
   it("get price test reverse", async () => {
@@ -184,4 +187,28 @@ describe("BalancerStablePoolSwapperTests", function () {
     expect(price).eq(balDelta.abs());
   });
 
+  it("get price-with-impact test", async () => {
+    const amountToSwapHuge = parseUnits('90000', 6);
+
+    const minimalAmount = amountToSwapHuge.div(1000);
+    const priceForMinimalAmount = await swapper.getPrice(stablePool.address, usdc.address, dai.address, minimalAmount);
+    const amountOutMax = amountToSwapHuge.mul(priceForMinimalAmount).div(minimalAmount);
+
+    const balanceDaiSignerBefore = await dai.balanceOf(signer.address);
+    const {amountOut, priceImpactOut} = await swapper.getPriceWithImpact(stablePool.address, usdc.address, dai.address, amountToSwapHuge);
+    await usdc.transfer(swapper.address, amountToSwapHuge);
+    await swapper.swap(stablePool.address, usdc.address, dai.address, signer.address, 100_000);
+    const amountOutAfterSwap = (await dai.balanceOf(signer.address)).sub(balanceDaiSignerBefore);
+
+    const ret = [
+      amountOut.toString(),
+      priceImpactOut.toString()
+    ].join();
+    const expected = [
+      amountOutAfterSwap.toString(),
+      (amountOutMax.sub(amountOutAfterSwap)).mul(100_000).div(amountOutMax).toString()
+    ].join();
+
+    expect(ret).eq(expected);
+  });
 });

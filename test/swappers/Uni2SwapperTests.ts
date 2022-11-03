@@ -4,7 +4,7 @@ import {expect} from "chai";
 import {
   Controller,
   IERC20__factory,
-  IERC20Metadata__factory,
+  IERC20Metadata__factory, IUniswapV2Pair__factory,
   MockToken,
   Uni2Swapper,
   UniswapV2Factory,
@@ -15,6 +15,7 @@ import {parseUnits} from "ethers/lib/utils";
 import {TimeUtils} from "../TimeUtils";
 import {DeployerUtils} from "../../scripts/utils/DeployerUtils";
 import {Misc} from "../../scripts/utils/Misc";
+import {UniswapUtils} from "../UniswapUtils";
 
 
 describe("Uni2SwapperTests", function () {
@@ -136,6 +137,31 @@ describe("Uni2SwapperTests", function () {
 
   it("get price test", async () => {
     expect(await swapper.getPrice(tetuUsdc.address, tetu.address, usdc.address, parseUnits('1'))).eq(parseUnits('0.499997', 6));
+    expect((await swapper.getPriceWithImpact(tetuUsdc.address, tetu.address, usdc.address, parseUnits('1'))).amountOut).eq(parseUnits('0.499997', 6));
+  });
+
+  it("get price-with-impact test", async () => {
+    const amountToSwapHuge = parseUnits('90000');
+    await swapper.setFee(factory.address, 300);
+
+    const amountOutMax = await UniswapUtils.getMaxAmountOut(signer, tetuUsdc.address, tetu.address, amountToSwapHuge);
+    const balanceUsdcSignerBefore = await usdc.balanceOf(signer.address);
+    const {amountOut, priceImpactOut} = await swapper.getPriceWithImpact(tetuUsdc.address, tetu.address, usdc.address, amountToSwapHuge);
+    await tetu.transfer(swapper.address, amountToSwapHuge);
+
+    await swapper.swap(tetuUsdc.address, tetu.address, usdc.address, signer.address, 100_000);
+    const amountOutAfterSwap = (await usdc.balanceOf(signer.address)).sub(balanceUsdcSignerBefore);
+
+    const ret = [
+      amountOut.toString(),
+      priceImpactOut.toString()
+    ].join();
+    const expected = [
+      amountOutAfterSwap.toString(),
+      (amountOutMax.sub(amountOutAfterSwap)).mul(100_000).div(amountOutMax).toString()
+    ].join();
+
+    expect(ret).eq(expected);
   });
 });
 

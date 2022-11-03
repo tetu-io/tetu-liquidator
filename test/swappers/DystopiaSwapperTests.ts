@@ -6,7 +6,7 @@ import {
   DystFactory,
   DystopiaSwapper,
   IERC20__factory,
-  IERC20Metadata__factory,
+  IERC20Metadata__factory, IUniswapV2Pair__factory,
   MockToken,
   UniswapV2Pair,
   UniswapV2Pair__factory
@@ -117,6 +117,7 @@ describe("DystopiaSwapperTests", function () {
 
   it("get price test", async () => {
     expect(await swapper.getPrice(tetuUsdc.address, tetu.address, usdc.address, parseUnits('1'))).eq(parseUnits('0.499747', 6));
+    expect((await swapper.getPriceWithImpact(tetuUsdc.address, tetu.address, usdc.address, parseUnits('1'))).amountOut).eq(parseUnits('0.499747', 6));
   });
 
   it("swap pair sync coverage", async () => {
@@ -141,6 +142,28 @@ describe("DystopiaSwapperTests", function () {
     )).reverted;
   });
 
+  it("get price-with-impact test", async () => {
+    const amountToSwapHuge = parseUnits('90000');
+    const amountMinimal = parseUnits('1', 16);
+    const amountOutMax = (await swapper.getPrice(tetuUsdc.address, tetu.address, usdc.address, amountMinimal)).mul(amountToSwapHuge).div(amountMinimal);
+
+    const balanceUsdcSignerBefore = await usdc.balanceOf(signer.address);
+    const {amountOut, priceImpactOut} = await swapper.getPriceWithImpact(tetuUsdc.address, tetu.address, usdc.address, amountToSwapHuge);
+    await tetu.transfer(swapper.address, amountToSwapHuge);
+    await swapper.swap(tetuUsdc.address, tetu.address, usdc.address, signer.address, 100_000);
+    const amountOutAfterSwap = (await usdc.balanceOf(signer.address)).sub(balanceUsdcSignerBefore);
+
+    const ret = [
+      amountOut.toString(),
+      priceImpactOut.toString()
+    ].join();
+    const expected = [
+      amountOutAfterSwap.toString(),
+      (amountOutMax.sub(amountOutAfterSwap)).mul(100_000).div(amountOutMax).toString()
+    ].join();
+
+    expect(ret).eq(expected);
+  });
 });
 
 
