@@ -19,4 +19,15 @@ interface ISwapper {
     uint amount
   ) external view returns (uint);
 
+  /// @return amountOut Estimated amount of {tokenOut} after swap
+  /// @return priceImpactOut Estimated price impact percent, decimals 5
+  function getPriceWithImpact(
+    address pool,
+    address tokenIn,
+    address tokenOut,
+    uint amount
+  ) external view returns (
+    uint amountOut,
+    uint priceImpactOut
+  );
 }

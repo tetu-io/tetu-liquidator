@@ -19,7 +19,7 @@ contract Uni2Swapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant UNI_SWAPPER_VERSION = "1.0.1";
+  string public constant UNI_SWAPPER_VERSION = "1.0.2";
   uint public constant FEE_DENOMINATOR = 100_000;
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
 
@@ -77,6 +77,23 @@ contract Uni2Swapper is ControllableV3, ISwapper {
     (uint reserveIn, uint reserveOut) = _getReserves(IUniswapV2Pair(pool), tokenIn, tokenOut);
     uint fee = feeByFactory[IUniswapV2Pair(pool).factory()];
     return _getAmountOut(amount, reserveIn, reserveOut, fee);
+  }
+
+  function getPriceWithImpact(
+    address pool,
+    address tokenIn,
+    address tokenOut,
+    uint amount
+  ) external view override returns (
+    uint amountOut,
+    uint priceImpactOut
+  ) {
+    (uint reserveIn, uint reserveOut) = _getReserves(IUniswapV2Pair(pool), tokenIn, tokenOut);
+    uint fee = feeByFactory[IUniswapV2Pair(pool).factory()];
+    amountOut = _getAmountOut(amount, reserveIn, reserveOut, fee);
+
+    uint amountOutMax = getAmountOutMax(reserveIn, reserveOut, amount);
+    priceImpactOut = (amountOutMax - amountOut) * PRICE_IMPACT_DENOMINATOR / amountOutMax;
   }
 
   // *************************************************************

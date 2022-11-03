@@ -134,6 +134,9 @@ describe("Uni2SwapperTests", function () {
     expect(balAfter.sub(bal)).above(parseUnits('4700', 6));
   });
 
+  it("get price test", async () => {
+    expect(await swapper.getPrice(tetuUsdc.address, tetu.address, usdc.address, parseUnits('1'))).eq(parseUnits('0.499997', 6));
+  });
 });
 
 

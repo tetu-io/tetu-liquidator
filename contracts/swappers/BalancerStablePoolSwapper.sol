@@ -24,7 +24,7 @@ contract BalancerStablePoolSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant BALANCER_STABLE_POOL_SWAPPER_VERSION = "1.0.0";
+  string public constant BALANCER_STABLE_POOL_SWAPPER_VERSION = "1.0.1";
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
 
   uint private constant _LIMIT = 1;
@@ -121,6 +121,26 @@ contract BalancerStablePoolSwapper is ControllableV3, ISwapper {
     );
     return ScaleLib._downscaleDown(amountOutUpscaled, scalingFactors[tokenOutIndex]);
     }
+  }
+
+  function getPriceWithImpact(
+    address pool,
+    address tokenIn,
+    address tokenOut,
+    uint amount
+  ) external view override returns (
+    uint amountOut,
+    uint priceImpactOut
+  ) {
+    amountOut = getPrice(pool, tokenIn, tokenOut, amount);
+
+    uint minimalAmount = amount / 1000;
+    uint price = getPrice(pool, tokenIn, tokenOut, minimalAmount);
+    uint amountOutMax = price * amount / minimalAmount;
+
+    priceImpactOut = amountOutMax < amountOut
+      ? 0
+      : (amountOutMax - amountOut) * PRICE_IMPACT_DENOMINATOR / amountOutMax;
   }
 
   // *************************************************************

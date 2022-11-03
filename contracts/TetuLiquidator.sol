@@ -20,8 +20,9 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant LIQUIDATOR_VERSION = "1.0.0";
+  string public constant LIQUIDATOR_VERSION = "1.0.1";
   uint public constant ROUTE_LENGTH_MAX = 5;
+  uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
 
 
   // *************************************************************
@@ -137,6 +138,34 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
     return route.length != 0;
   }
 
+  function getPriceWithImpact(
+    address tokenIn,
+    address tokenOut,
+    uint amount
+  ) external view override returns (
+    uint priceOut,
+    uint priceImpactOut
+  ) {
+    (PoolData[] memory route,) = buildRoute(tokenIn, tokenOut);
+    if (route.length == 0) {
+      return (0, 0);
+    }
+
+    if (amount == 0) {
+      priceOut = 10 ** IERC20Metadata(tokenIn).decimals();
+    } else {
+      priceOut = amount;
+    }
+
+    uint priceImpact;
+    for (uint i; i < route.length; i++) {
+      PoolData memory data = route[i];
+      (priceOut, priceImpact) = ISwapper(data.swapper).getPriceWithImpact(data.pool, data.tokenIn, data.tokenOut, priceOut);
+      priceImpactOut += (PRICE_IMPACT_DENOMINATOR - priceImpactOut) * priceImpact / PRICE_IMPACT_DENOMINATOR;
+    }
+
+    return (priceOut, priceImpactOut);
+  }
   // *************************************************************
   //                        LIQUIDATE
   // *************************************************************

@@ -20,7 +20,7 @@ contract DystopiaSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant DYSTOPIA_SWAPPER_VERSION = "1.0.3";
+  string public constant DYSTOPIA_SWAPPER_VERSION = "1.0.4";
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
 
   // --- REBASE TOKENS
@@ -71,6 +71,35 @@ contract DystopiaSwapper is ControllableV3, ISwapper {
     uint amount
   ) external view override returns (uint) {
     return IDystopiaPair(pool).getAmountOut(amount, tokenIn);
+  }
+
+  function getPriceWithImpact(
+    address pool,
+    address tokenIn,
+    address tokenOut,
+    uint amount
+  ) external view override returns (
+    uint amountOut,
+    uint priceImpactOut
+  ) {
+    amountOut = IDystopiaPair(pool).getAmountOut(amount, tokenIn);
+
+    uint tokenInDecimals = IERC20Metadata(tokenIn).decimals();
+    uint tokenOutDecimals = IERC20Metadata(tokenOut).decimals();
+
+    uint minimalAmount = 10 ** Math.max(
+      (tokenInDecimals > tokenOutDecimals
+        ? tokenInDecimals - tokenOutDecimals
+        : tokenOutDecimals - tokenInDecimals
+      ),
+      1
+    ) * 10_000;
+    uint amountOutMax = IDystopiaPair(pool).getAmountOut(minimalAmount, tokenIn) * amount / minimalAmount;
+
+    // it is pretty hard to calculate exact impact for stable pool
+    priceImpactOut = amountOutMax < amountOut
+      ? 0
+      : (amountOutMax - amountOut) * PRICE_IMPACT_DENOMINATOR / amountOutMax;
   }
 
   // *************************************************************
