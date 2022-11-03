@@ -280,7 +280,7 @@ describe("Liquidator base Tests", function () {
       expect(ret.priceOut.toString()).eq(price.toString());
     });
   });
-  describe("Tests for getPriceWithImpact, priceImpactOut", () => {
+  describe("Tests for getPriceWithImpact, maxPriceImpactOut", () => {
     it("simple route, swapper gives the same price-impact-out", async () => {
       const swapper = await DeployerUtils.deployUni2Swapper(signer, controller.address);
       await swapper.setFee(factory.address, 300);
@@ -293,9 +293,9 @@ describe("Liquidator base Tests", function () {
       const amountToSwap = parseUnits('10000');
       const {priceImpactOut} = await swapper.getPriceWithImpact(tetuUsdc.address, tetu.address, usdc.address, amountToSwap);
       const ret = await liquidator.getPriceWithImpact(tetu.address, usdc.address, amountToSwap);
-      expect(ret.priceImpactOut.toString()).eq(priceImpactOut.toString());
+      expect(ret.maxPriceImpactOut.toString()).eq(priceImpactOut.toString());
     });
-    it("complex route, price-impact-out is calculated as expected", async () => {
+    it("complex route, get max price-impact value", async () => {
       const matic = await DeployerUtils.deployMockToken(signer, 'WMATIC');
       const maticUsdc = await createPair(signer, factory, usdc.address, matic.address);
 
@@ -315,60 +315,16 @@ describe("Liquidator base Tests", function () {
         tokenIn: matic.address,
         tokenOut: usdc.address,
       }], false);
-      const amountToSwap = parseUnits('500');
+      const amountToSwap = parseUnits('5000');
 
-      // Suppose, we have a route with 3 steps, each step has 10% of price impact
-      // Result price impact is following: 10 + 90*0.1 + 81*0.1 = 27.1%
       const retTetuUsdc = await swapper.getPriceWithImpact(tetuUsdc.address, tetu.address, usdc.address, amountToSwap);
       const retUsdcMatic = await swapper.getPriceWithImpact(maticUsdc.address, usdc.address, matic.address, retTetuUsdc.amountOut);
-      const priceImpactDenominator = parseUnits('1', 5);
-      const expectedPriceImpact = retTetuUsdc.priceImpactOut.add(
-        priceImpactDenominator.sub(retTetuUsdc.priceImpactOut).mul(retUsdcMatic.priceImpactOut).div(priceImpactDenominator)
-      );
+      const expectedPriceImpact = retTetuUsdc.priceImpactOut.gt(retUsdcMatic.priceImpactOut)
+        ? retTetuUsdc.priceImpactOut
+        : retUsdcMatic.priceImpactOut;
+
       const ret = await liquidator.getPriceWithImpact(tetu.address, matic.address, amountToSwap);
-      expect(ret.priceImpactOut.toString()).eq(expectedPriceImpact.toString());
-    });
-    it("complex route: make swap, predicted price impact as same as real one", async () => {
-      const matic = await DeployerUtils.deployMockToken(signer, 'WMATIC');
-      const maticUsdc = await createPair(signer, factory, usdc.address, matic.address);
-
-      const balanceBefore = await matic.balanceOf(signer.address);
-      const swapper = await DeployerUtils.deployUni2Swapper(signer, controller.address);
-      await swapper.setFee(factory.address, 300);
-
-      await liquidator.addLargestPools([{
-        pool: tetuUsdc.address,
-        swapper: swapper.address,
-        tokenIn: tetu.address,
-        tokenOut: usdc.address,
-      }], false);
-
-      await liquidator.addLargestPools([{
-        pool: maticUsdc.address,
-        swapper: swapper.address,
-        tokenIn: matic.address,
-        tokenOut: usdc.address,
-      }], false);
-      const amountToSwap = parseUnits('0.1');
-
-      const amountUsdcMax = await UniswapUtils.getMaxAmountOut(signer, tetuUsdc.address, tetu.address, amountToSwap);
-      const amountMaticMax = await UniswapUtils.getMaxAmountOut(signer, maticUsdc.address, usdc.address, amountUsdcMax);
-      const predicted = await liquidator.getPriceWithImpact(tetu.address, matic.address, amountToSwap);
-      console.log("amountUsdcMax", amountUsdcMax);
-      console.log("amountMaticMax", amountMaticMax);
-      console.log("predicted", predicted);
-
-      await tetu.approve(liquidator.address, Misc.MAX_UINT);
-      await liquidator.liquidate(tetu.address, matic.address, amountToSwap, 100_000);
-      const balanceAfter = await matic.balanceOf(signer.address);
-      const amountOut = balanceAfter.sub(balanceBefore);
-
-      const priceImpact = (amountMaticMax.sub(amountOut)).mul(100_000).div(amountMaticMax);
-
-      console.log("amountOut", amountOut);
-      console.log("priceImpact", priceImpact);
-
-      expect(priceImpact.toString()).eq(predicted.priceImpactOut.toString());
+      expect(ret.maxPriceImpactOut.toString()).eq(expectedPriceImpact.toString());
     });
   });
 });

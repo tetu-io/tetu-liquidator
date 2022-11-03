@@ -6,7 +6,7 @@ import {
   BalancerStablePoolSwapper,
   MockToken,
   StablePool,
-  Vault, IUniswapV2Pair__factory,
+  Vault,
 } from "../../typechain";
 import {parseUnits} from "ethers/lib/utils";
 import {TimeUtils} from "../TimeUtils";

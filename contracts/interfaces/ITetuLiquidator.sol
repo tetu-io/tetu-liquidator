@@ -36,13 +36,13 @@ interface ITetuLiquidator {
   ) external;
 
   /// @return priceOut Estimated amount of {tokenOut} after swap
-  /// @return priceImpactOut Estimated price impact percent, decimals 5
+  /// @return maxPriceImpactOut Maximum price impact percent among swappers in the route, decimals 5
   function getPriceWithImpact(
     address tokenIn,
     address tokenOut,
     uint amount
   ) external view returns (
     uint priceOut,
-    uint priceImpactOut
+    uint maxPriceImpactOut
   );
 }

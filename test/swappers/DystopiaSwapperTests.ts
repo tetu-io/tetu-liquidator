@@ -6,8 +6,7 @@ import {
   DystFactory,
   DystopiaSwapper,
   IERC20__factory,
-  IERC20Metadata__factory, IUniswapV2Pair__factory,
-  MockToken,
+  IERC20Metadata__factory, MockToken,
   UniswapV2Pair,
   UniswapV2Pair__factory
 } from "../../typechain";

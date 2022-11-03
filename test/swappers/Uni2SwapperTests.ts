@@ -4,8 +4,7 @@ import {expect} from "chai";
 import {
   Controller,
   IERC20__factory,
-  IERC20Metadata__factory, IUniswapV2Pair__factory,
-  MockToken,
+  IERC20Metadata__factory, MockToken,
   Uni2Swapper,
   UniswapV2Factory,
   UniswapV2Pair,

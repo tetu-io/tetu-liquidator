@@ -130,8 +130,8 @@ contract BalancerWeightedPoolSwapper is ControllableV3, ISwapper {
     uint amountOutMax = price * amount / minimalAmount;
 
     priceImpactOut = amountOutMax < amountOut
-    ? 0
-    : (amountOutMax - amountOut) * PRICE_IMPACT_DENOMINATOR / amountOutMax;
+      ? 0
+      : (amountOutMax - amountOut) * PRICE_IMPACT_DENOMINATOR / amountOutMax;
   }
 
   // *************************************************************
