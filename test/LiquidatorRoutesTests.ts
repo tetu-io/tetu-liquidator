@@ -15,6 +15,7 @@ import {
 } from "../typechain";
 import {parseUnits} from "ethers/lib/utils";
 import {Misc} from "../scripts/utils/Misc";
+import {UniswapUtils} from "./UniswapUtils";
 
 
 describe("Liquidator routes Tests", function () {
@@ -68,7 +69,7 @@ describe("Liquidator routes Tests", function () {
     t7 = await DeployerUtils.deployMockToken(signer, 'token7');
     bc8 = await DeployerUtils.deployMockToken(signer, 'token8');
 
-    const uniData = await DeployerUtils.deployUniswap(signer);
+    const uniData = await UniswapUtils.deployUniswapV2(signer);
     factory = uniData.factory;
 
     p12 = await createPair(signer, factory, bc1.address, bc2.address);

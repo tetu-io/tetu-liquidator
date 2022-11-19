@@ -4,7 +4,6 @@ import {BigNumber, BigNumberish, ContractFactory, utils} from "ethers";
 import {Misc} from "./Misc";
 import logSettings from "../../log_settings";
 import {Logger} from "tslog";
-import {Libraries} from "hardhat-deploy/dist/types";
 import {parseEther, parseUnits} from "ethers/lib/utils";
 import {
   Authorizer,
@@ -22,10 +21,12 @@ import {
   Vault,
   Vault__factory,
   WeightedPool,
-  StablePool
+  StablePool, Uni3Swapper__factory
 } from "../../typechain";
 import {VerifyUtils} from "./VerifyUtils";
 import {RunHelper} from "./RunHelper";
+import {Libraries} from "@nomiclabs/hardhat-ethers/types";
+import {deployContract} from "../deploy/DeployContract";
 
 // tslint:disable-next-line:no-var-requires
 const hre = require("hardhat");
@@ -49,54 +50,7 @@ export class DeployerUtils {
     // tslint:disable-next-line:no-any
     ...args: any[]
   ) {
-    log.info(`Deploying ${name}`);
-    log.info("Account balance: " + utils.formatUnits(await signer.getBalance(), 18));
-
-    const gasPrice = await web3.eth.getGasPrice();
-    log.info("Gas price: " + gasPrice);
-    const lib: string | undefined = libraries.get(name);
-    let _factory;
-    if (lib) {
-      log.info('DEPLOY LIBRARY', lib, 'for', name);
-      const libAddress = (await DeployerUtils.deployContract(signer, lib)).address;
-      const librariesObj: Libraries = {};
-      librariesObj[lib] = libAddress;
-      _factory = (await ethers.getContractFactory(
-        name,
-        {
-          signer,
-          libraries: librariesObj
-        }
-      )) as T;
-    } else {
-      _factory = (await ethers.getContractFactory(
-        name,
-        signer
-      )) as T;
-    }
-    let gas = 8_000_000;
-    if (hre.network.name === 'hardhat') {
-      gas = 999_999_999;
-    }
-    const instance = await _factory.deploy(...args, {gasLimit: gas});
-    log.info('Deploy tx:', instance.deployTransaction.hash);
-    await instance.deployed();
-
-    const receipt = await ethers.provider.getTransactionReceipt(instance.deployTransaction.hash);
-    console.log('DEPLOYED: ', name, receipt.contractAddress);
-
-    if (hre.network.name !== 'hardhat') {
-      await Misc.wait(10);
-      if (args.length === 0) {
-        await VerifyUtils.verify(receipt.contractAddress);
-      } else {
-        await VerifyUtils.verifyWithArgs(receipt.contractAddress, args);
-        if (name === 'ProxyControlled') {
-          await VerifyUtils.verifyProxy(receipt.contractAddress);
-        }
-      }
-    }
-    return _factory.attach(receipt.contractAddress);
+    return deployContract(hre, signer, name, ...args);
   }
 
   public static async deployMockToken(signer: SignerWithAddress, name = 'MOCK', decimals = 18, amount: string = '1000000') {
@@ -131,6 +85,13 @@ export class DeployerUtils {
     return swapper;
   }
 
+  public static async deployUni3Swapper(signer: SignerWithAddress, controller: string) {
+    const proxy = await DeployerUtils.deployProxy(signer, 'Uni3Swapper')
+    const swapper = Uni3Swapper__factory.connect(proxy, signer);
+    await RunHelper.runAndWait(() => swapper.init(controller, {gasLimit: 8_000_000}))
+    return swapper;
+  }
+
   public static async deployDystopiaSwapper(signer: SignerWithAddress, controller: string) {
     const proxy = await DeployerUtils.deployProxy(signer, 'DystopiaSwapper')
     const swapper = DystopiaSwapper__factory.connect(proxy, signer);
@@ -150,15 +111,6 @@ export class DeployerUtils {
     const swapper = BalancerStablePoolSwapper__factory.connect(proxy, signer);
     await RunHelper.runAndWait(() => swapper.init(controller, balancerVault, {gasLimit: 8_000_000}))
     return swapper;
-  }
-
-  public static async deployUniswap(signer: SignerWithAddress) {
-    const factory = await DeployerUtils.deployContract(signer, 'UniswapV2Factory', signer.address) as UniswapV2Factory;
-    const netToken = (await DeployerUtils.deployMockToken(signer, 'WETH')).address.toLowerCase();
-    return {
-      factory,
-      netToken
-    }
   }
 
   public static async deployDystopia(signer: SignerWithAddress) {
@@ -289,7 +241,7 @@ export class DeployerUtils {
 
     const vault = await Vault__factory.connect(vaultAddress, signer);
 
-    const initialBalances : BigNumberish[] = [];
+    const initialBalances: BigNumberish[] = [];
     for (const token of tokensSorted) {
       const decimals = await token.decimals();
       const initialBalance = parseUnits(initialBalanceUnits, decimals);

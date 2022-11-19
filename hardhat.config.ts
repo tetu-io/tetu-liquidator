@@ -57,15 +57,15 @@ const argv = require('yargs/yargs')()
     },
     ethForkBlock: {
       type: "number",
-      default: 14628000
+      default: 0
     },
     maticForkBlock: {
       type: "number",
-      default: 28058008
+      default: 0
     },
     ftmForkBlock: {
       type: "number",
-      default: 35202770
+      default: 0
     },
     fujiRpcUrl: {
       type: "string",
@@ -204,7 +204,7 @@ export default {
   solidity: {
     compilers: [
       {
-        version: "0.8.4",
+        version: "0.8.17",
         settings: {
           optimizer: {
             enabled: true,

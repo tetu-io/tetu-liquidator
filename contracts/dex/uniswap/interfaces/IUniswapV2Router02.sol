@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.4;
+pragma solidity 0.8.17;
 
 interface IUniswapV2Router02 {
   function factory() external view returns (address);

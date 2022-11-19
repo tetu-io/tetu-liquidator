@@ -15,6 +15,7 @@ import {parseUnits} from "ethers/lib/utils";
 import {TimeUtils} from "../TimeUtils";
 import {DeployerUtils} from "../../scripts/utils/DeployerUtils";
 import {Misc} from "../../scripts/utils/Misc";
+import {UniswapUtils} from "../UniswapUtils";
 
 
 describe("Uni2SwapperTests", function () {
@@ -39,7 +40,7 @@ describe("Uni2SwapperTests", function () {
 
     swapper = await DeployerUtils.deployUni2Swapper(signer, controller.address);
 
-    const uniData = await DeployerUtils.deployUniswap(signer);
+    const uniData = await UniswapUtils.deployUniswapV2(signer);
     factory = uniData.factory;
 
     usdc = await DeployerUtils.deployMockToken(signer, 'USDC', 6);

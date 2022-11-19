@@ -18,10 +18,10 @@ const META: {
   swapper: string,
 }[] = [
   {
-    tokenIn: MaticAddresses.bbamUSDC_TOKEN,
+    tokenIn: '0xC3C7d422809852031b44ab29EEC9F1EfF2A58756',
     tokenOut: MaticAddresses.USDC_TOKEN,
-    pool: '0xF93579002DBE8046c43FEfE86ec78b1112247BB8',
-    swapper: BALANCER_STABLE_SWAPPER,
+    pool: '0xa0f330F5Fc47eE7A3297DBD6Be6Fe60cd0346B26',
+    swapper: UNI2_SWAPPER,
   },
 ]
 

@@ -27,7 +27,7 @@ async function main() {
   const liquidator = await DeployerUtils.deployTetuLiquidator(signer, CONTROLLER);
   const uniSwapper = await DeployerUtils.deployUni2Swapper(signer, CONTROLLER);
 
-  const uniData = await UniswapUtils.deployUniswap(signer);
+  const uniData = await UniswapUtils.deployUniswapV2(signer);
 
   const factory = uniData.factory;
   const weth = uniData.netToken;

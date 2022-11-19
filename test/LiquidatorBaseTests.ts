@@ -15,6 +15,7 @@ import {
 } from "../typechain";
 import {parseUnits} from "ethers/lib/utils";
 import {Misc} from "../scripts/utils/Misc";
+import {UniswapUtils} from "./UniswapUtils";
 
 
 describe("Liquidator base Tests", function () {
@@ -38,7 +39,7 @@ describe("Liquidator base Tests", function () {
 
     liquidator = await DeployerUtils.deployTetuLiquidator(signer, controller.address);
 
-    const uniData = await DeployerUtils.deployUniswap(signer);
+    const uniData = await UniswapUtils.deployUniswapV2(signer);
     factory = uniData.factory;
 
     usdc = await DeployerUtils.deployMockToken(signer, 'USDC', 6);
