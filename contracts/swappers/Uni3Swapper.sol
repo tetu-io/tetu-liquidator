@@ -33,12 +33,7 @@ contract Uni3Swapper is ControllableV3, ISwapper, IUniswapV3SwapCallback {
   uint160 internal constant MIN_SQRT_RATIO = 4295128739 + 1;
   /// @dev The maximum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MAX_TICK)
   uint160 internal constant MAX_SQRT_RATIO = 1461446703485210103287273052203988822378723970342 - 1;
-  bytes32 internal constant POOL_INIT_CODE_HASH = 0xe34f199b19b2b4f47f68442619d555527d244f78a3297ea89325f843f87b8b54;
   uint private constant TWO_96 = 2 ** 96;
-  uint private constant TWO_192 = 2 ** 192;
-  uint private constant TWO_192_18 = TWO_192 * 1e18;
-  uint private constant TWO_96_18 = TWO_96 * 1e18;
-  uint private constant PRICE_PRECISION = 1e18;
 
   // *************************************************************
   //                        VARIABLES
@@ -67,10 +62,6 @@ contract Uni3Swapper is ControllableV3, ISwapper, IUniswapV3SwapCallback {
   function init(address controller_) external initializer {
     __Controllable_init(controller_);
   }
-
-  // *************************************************************
-  //                     GOV ACTIONS
-  // *************************************************************
 
   // *************************************************************
   //                        PRICE

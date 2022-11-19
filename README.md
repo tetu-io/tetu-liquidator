@@ -24,6 +24,7 @@ This solution is able to liquidate token to another token with strict predefined
 | DystopiaSwapper         | [0x867F88209074f4B7300e7593Cd50C05B2c02Ad01](https://polygonscan.com/address/0x867F88209074f4B7300e7593Cd50C05B2c02Ad01#readProxyContract) |
 | BalancerStableSwapper   | [0xc43e971566B8CCAb815C3E20b9dc66571541CeB4](https://polygonscan.com/address/0xc43e971566B8CCAb815C3E20b9dc66571541CeB4#readProxyContract) |
 | BalancerWeightedSwapper | [0x0bcbE4653e96aE39bde24312882faA0EdDF03256](https://polygonscan.com/address/0x0bcbE4653e96aE39bde24312882faA0EdDF03256#readProxyContract) |
+| UniV3Swapper            | [0x8E6079615Bc2F7dAB35202cDfa2aA78AD3aF4629](https://polygonscan.com/address/0x8E6079615Bc2F7dAB35202cDfa2aA78AD3aF4629#readProxyContract) |
 
 
 ## BSC addresses
