@@ -4,6 +4,7 @@ pragma solidity 0.8.17;
 
 import "../openzeppelin/SafeERC20.sol";
 import "../openzeppelin/Math.sol";
+import "../openzeppelin/Strings.sol";
 import "../interfaces/IERC20.sol";
 import "../interfaces/IERC20Metadata.sol";
 import "../interfaces/ISwapper.sol";
@@ -26,7 +27,7 @@ contract Uni3Swapper is ControllableV3, ISwapper, IUniswapV3SwapCallback {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant UNI_SWAPPER3_VERSION = "1.0.0";
+  string public constant UNI_SWAPPER3_VERSION = "1.0.1";
   uint public constant FEE_DENOMINATOR = 100_000;
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
   /// @dev The minimum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MIN_TICK)
@@ -128,7 +129,7 @@ contract Uni3Swapper is ControllableV3, ISwapper, IUniswapV3SwapCallback {
   ) external override {
     address token0 = IUniswapV3Pool(pool).token0();
 
-    uint balanceBefore = IERC20(tokenIn).balanceOf(recipient);
+    uint balanceBefore = IERC20(tokenOut).balanceOf(recipient);
     uint amount = IERC20(tokenIn).balanceOf(address(this));
 
     {
@@ -146,9 +147,10 @@ contract Uni3Swapper is ControllableV3, ISwapper, IUniswapV3SwapCallback {
       require(priceAfter < priceBefore, "Price did not reduced");
 
       uint priceImpact = (priceBefore - priceAfter) * PRICE_IMPACT_DENOMINATOR / priceBefore;
-      require(priceImpact < priceImpactTolerance, "!PRICE");
+      require(priceImpact < priceImpactTolerance, string(abi.encodePacked("!PRICE ", Strings.toString(priceImpact))));
     }
 
+    uint balanceAfter = IERC20(tokenOut).balanceOf(recipient);
     emit Swap(
       pool,
       tokenIn,
@@ -156,7 +158,7 @@ contract Uni3Swapper is ControllableV3, ISwapper, IUniswapV3SwapCallback {
       recipient,
       priceImpactTolerance,
       amount,
-      IERC20(tokenIn).balanceOf(recipient) - balanceBefore
+      balanceAfter > balanceBefore ? balanceAfter - balanceBefore : 0
     );
   }
 

@@ -86,7 +86,7 @@ describe("Uni3SwapperTests", function () {
     const USDC = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
     const POOL = '0x3d0ACD52eE4A9271a0fFE75F9b91049152BaC64b'
 
-    await IERC20__factory.connect(LIDO, lidoHolder).transfer(swapper.address, parseUnits('5000'))
+    await IERC20__factory.connect(LIDO, lidoHolder).transfer(swapper.address, parseUnits('1000'))
     await swapper.swap(
       POOL,
       LIDO,

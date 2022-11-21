@@ -19,9 +19,9 @@ const META: {
   swapper: string,
 }[] = [
   {
-    tokenIn: MaticAddresses.LIDO_TOKEN,
-    tokenOut: MaticAddresses.WMATIC_TOKEN,
-    pool: '0xd866fac7db79994d08c0ca2221fee08935595b4b',
+    tokenIn: MaticAddresses.TETU_TOKEN,
+    tokenOut: MaticAddresses.USDC_TOKEN,
+    pool: '0x08D1b5797D099E3F247391b68C093b474CbE6040',
     swapper: UNI3_SWAPPER,
   },
 ]
