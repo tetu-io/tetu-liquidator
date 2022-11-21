@@ -10,7 +10,7 @@ const UNI2_SWAPPER = '0x0089539BeCB82Ab51bc5C76F93Aa61281540fF33';
 const DYSTOPIA_SWAPPER = '0x867F88209074f4B7300e7593Cd50C05B2c02Ad01';
 const BALANCER_STABLE_SWAPPER = '0xc43e971566B8CCAb815C3E20b9dc66571541CeB4';
 const BALANCER_WEIGHTED_SWAPPER = '0x0bcbE4653e96aE39bde24312882faA0EdDF03256';
-const UNI3_SWAPPER = '0x8E6079615Bc2F7dAB35202cDfa2aA78AD3aF4629';
+const UNI3_SWAPPER = '0x7b505210a0714d2a889E41B59edc260Fa1367fFe';
 
 const META: {
   tokenIn: string,
@@ -18,11 +18,17 @@ const META: {
   pool: string,
   swapper: string,
 }[] = [
+  // {
+  //   tokenIn: MaticAddresses.TETU_TOKEN,
+  //   tokenOut: MaticAddresses.USDC_TOKEN,
+  //   pool: '0x08D1b5797D099E3F247391b68C093b474CbE6040',
+  //   swapper: UNI3_SWAPPER,
+  // },
   {
     tokenIn: MaticAddresses.TETU_TOKEN,
     tokenOut: MaticAddresses.USDC_TOKEN,
-    pool: '0x08D1b5797D099E3F247391b68C093b474CbE6040',
-    swapper: UNI3_SWAPPER,
+    pool: '0x80fF4e4153883d770204607eb4aF9994739C72DC',
+    swapper: UNI2_SWAPPER,
   },
 ]
 
