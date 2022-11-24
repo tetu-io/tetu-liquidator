@@ -27,7 +27,7 @@ contract Uni3Swapper is ControllableV3, ISwapper, IUniswapV3SwapCallback {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant UNI_SWAPPER3_VERSION = "1.0.1";
+  string public constant UNI_SWAPPER3_VERSION = "1.0.2";
   uint public constant FEE_DENOMINATOR = 100_000;
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
   /// @dev The minimum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MIN_TICK)
@@ -144,7 +144,8 @@ contract Uni3Swapper is ControllableV3, ISwapper, IUniswapV3SwapCallback {
       );
 
       uint priceAfter = getPrice(pool, tokenIn, tokenOut, amount);
-      require(priceAfter < priceBefore, "Price did not reduced");
+      // unreal but better to check
+      require(priceAfter <= priceBefore, "Price increased");
 
       uint priceImpact = (priceBefore - priceAfter) * PRICE_IMPACT_DENOMINATOR / priceBefore;
       require(priceImpact < priceImpactTolerance, string(abi.encodePacked("!PRICE ", Strings.toString(priceImpact))));
