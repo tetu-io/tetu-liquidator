@@ -23,7 +23,7 @@ contract BalancerWeightedPoolSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant BALANCER_WEIGHTED_POOL_SWAPPER_VERSION = "1.0.0";
+  string public constant BALANCER_WEIGHTED_POOL_SWAPPER_VERSION = "1.0.1";
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
 
   uint private constant _LIMIT = 1;
@@ -73,9 +73,9 @@ contract BalancerWeightedPoolSwapper is ControllableV3, ISwapper {
     address tokenOut,
     uint amount
   ) public view override returns (uint) {
-    { // take pool commission
+    {// take pool commission
       uint swapFeePercentage = IBWeightedPoolMinimal(pool).getSwapFeePercentage();
-      amount -= amount * swapFeePercentage / 10**18;
+      amount -= amount * swapFeePercentage / 10 ** 18;
     }
     bytes32 poolId = IBWeightedPoolMinimal(pool).getPoolId();
     (IERC20[] memory tokens,
@@ -154,6 +154,7 @@ contract BalancerWeightedPoolSwapper is ControllableV3, ISwapper {
     uint amountOutMax;
     {
       uint minimalAmount = amountIn / 1000;
+      require(minimalAmount != 0, "Too low amountIn");
       uint price = getPrice(pool, tokenIn, tokenOut, minimalAmount);
       amountOutMax = price * amountIn / minimalAmount;
     }

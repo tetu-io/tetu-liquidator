@@ -18,17 +18,11 @@ const META: {
   pool: string,
   swapper: string,
 }[] = [
-  // {
-  //   tokenIn: MaticAddresses.TETU_TOKEN,
-  //   tokenOut: MaticAddresses.USDC_TOKEN,
-  //   pool: '0x08D1b5797D099E3F247391b68C093b474CbE6040',
-  //   swapper: UNI3_SWAPPER,
-  // },
   {
-    tokenIn: MaticAddresses.TETU_TOKEN,
-    tokenOut: MaticAddresses.USDC_TOKEN,
-    pool: '0x80fF4e4153883d770204607eb4aF9994739C72DC',
-    swapper: UNI2_SWAPPER,
+    tokenIn: '0x3d468AB2329F296e1b9d8476Bb54Dd77D8c2320f',
+    tokenOut: '0x7fC9E0Aa043787BFad28e29632AdA302C790Ce33',
+    pool: '0xB797AdfB7b268faeaA90CAdBfEd464C76ee599Cd',
+    swapper: BALANCER_STABLE_SWAPPER,
   },
 ]
 

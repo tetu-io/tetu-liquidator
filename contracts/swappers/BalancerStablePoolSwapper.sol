@@ -24,7 +24,7 @@ contract BalancerStablePoolSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant BALANCER_STABLE_POOL_SWAPPER_VERSION = "1.0.0";
+  string public constant BALANCER_STABLE_POOL_SWAPPER_VERSION = "1.0.1";
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
 
   uint private constant _LIMIT = 1;
@@ -163,6 +163,7 @@ contract BalancerStablePoolSwapper is ControllableV3, ISwapper {
     uint amountOutMax;
     {
       uint minimalAmount = amountIn / 1000;
+      require(minimalAmount != 0, "Too low amountIn");
       uint price = getPrice(pool, tokenIn, tokenOut, minimalAmount);
       amountOutMax = price * amountIn / minimalAmount;
     }
