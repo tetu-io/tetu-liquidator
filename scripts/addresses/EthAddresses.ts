@@ -17,6 +17,7 @@ export class EthAddresses {
   public static veBAL_TOKEN = "0xC128a9954e6c874eA3d62ce62B468bA073093F25".toLowerCase();
   public static LIDO_TOKEN = "0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32".toLowerCase();
   public static wstETH_TOKEN = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0".toLowerCase();
+  public static rETH_TOKEN = "0xae78736Cd615f374D3085123A210448E74Fc6393".toLowerCase();
 
 
   // balancer

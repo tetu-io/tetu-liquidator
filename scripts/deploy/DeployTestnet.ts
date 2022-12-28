@@ -15,40 +15,40 @@ import {Misc} from "../utils/Misc";
 import {writeFileSync} from "fs";
 import {RunHelper} from "../utils/RunHelper";
 
-const CONTROLLER = '0x0EFc2D2D054383462F2cD72eA2526Ef7687E1016';
-const TETU = '0x88a12B7b6525c0B46c0c200405f49cE0E72D71Aa';
+const TETU = '0x549aE613Bb492CCf68A6620848C80262709a1fb4';
+const USDC = '0x27af55366a339393865FC5943C04bc2600F55C9F';
+const WBTC = '0x0ed08c9A2EFa93C4bF3C8878e61D2B6ceD89E9d7';
+const WETH = '0x078b7c9304eBA754e916016E8A8939527076f991';
 
 async function main() {
   const signer = (await ethers.getSigners())[0];
-  // const signer = await Misc.impersonate('0xbbbbb8C4364eC2ce52c59D2Ed3E56F307E529a94');
-  const usdc = await DeployerUtils.deployMockToken(signer, 'USDC', 6);
-  const btc = await DeployerUtils.deployMockToken(signer, 'BTC', 8);
 
-  const liquidator = await DeployerUtils.deployTetuLiquidator(signer, CONTROLLER);
-  const uniSwapper = await DeployerUtils.deployUni2Swapper(signer, CONTROLLER);
+  const controller = await DeployerUtils.deployController(signer);
+  const liquidator = await DeployerUtils.deployTetuLiquidator(signer, controller.address);
+  const uniSwapper = await DeployerUtils.deployUni2Swapper(signer, controller.address);
 
-  const uniData = await UniswapUtils.deployUniswapV2(signer);
+  const uniData = await UniswapUtils.deployUniswapV2(signer, WETH);
 
   const factory = uniData.factory;
   const weth = uniData.netToken;
 
   await RunHelper.runAndWait(() => uniSwapper.setFee(factory.address, 300, {gasLimit: 8_000_000}));
 
-  const usdcBtc = await createPair(signer, factory, usdc.address, btc.address);
-  const usdcWeth = await createPair(signer, factory, usdc.address, weth);
-  const btcWeth = await createPair(signer, factory, btc.address, weth);
-  const usdcTetu = await createPair(signer, factory, usdc.address, TETU);
+  const usdcBtc = await createPair(signer, factory, USDC, WBTC);
+  const usdcWeth = await createPair(signer, factory, USDC, weth);
+  const btcWeth = await createPair(signer, factory, WBTC, weth);
+  const usdcTetu = await createPair(signer, factory, USDC, TETU);
 
-  await addBC(liquidator, usdcBtc, usdc.address, btc.address, uniSwapper.address);
-  await addBC(liquidator, usdcWeth, usdc.address, weth, uniSwapper.address);
-  await addBC(liquidator, btcWeth, btc.address, weth, uniSwapper.address);
-  await addPool(liquidator, usdcTetu, usdc.address, TETU, uniSwapper.address);
-  await addPool(liquidator, usdcBtc, btc.address, usdc.address, uniSwapper.address);
-  await addPool(liquidator, usdcWeth, weth, usdc.address, uniSwapper.address);
+  await addBC(liquidator, usdcBtc, USDC, WBTC, uniSwapper.address);
+  await addBC(liquidator, usdcWeth, USDC, weth, uniSwapper.address);
+  await addBC(liquidator, btcWeth, WBTC, weth, uniSwapper.address);
+  await addPool(liquidator, usdcTetu, USDC, TETU, uniSwapper.address);
+  await addPool(liquidator, usdcBtc, WBTC, USDC, uniSwapper.address);
+  await addPool(liquidator, usdcWeth, weth, USDC, uniSwapper.address);
 
   const data = `
-  usdc: ${usdc.address}
-  btc: ${btc.address}
+  usdc: ${USDC}
+  btc: ${WBTC}
   weth: ${weth}
   liquidator: ${liquidator.address}
   factory: ${factory.address}

@@ -5,9 +5,11 @@ import {DeployerUtils} from "../scripts/utils/DeployerUtils";
 export class UniswapUtils {
   public static deadline = "1000000000000";
 
-  public static async deployUniswapV2(signer: SignerWithAddress) {
+  public static async deployUniswapV2(signer: SignerWithAddress, netToken: string | null) {
     const factory = await DeployerUtils.deployContract(signer, 'UniswapV2Factory', signer.address) as UniswapV2Factory;
-    const netToken = (await DeployerUtils.deployMockToken(signer, 'WETH')).address.toLowerCase();
+    if (netToken === null) {
+      netToken = (await DeployerUtils.deployMockToken(signer, 'WETH')).address.toLowerCase();
+    }
     return {
       factory,
       netToken,

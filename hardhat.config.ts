@@ -39,6 +39,10 @@ const argv = require('yargs/yargs')()
       type: "string",
       default: ''
     },
+    sepoliaRpcUrl: {
+      type: "string",
+      default: ''
+    },
     networkScanKey: {
       type: "string",
     },
@@ -188,12 +192,19 @@ export default {
       // gasMultiplier: 1.3,
       accounts: [argv.privateKey],
     },
+    sepolia: {
+      url: argv.sepoliaRpcUrl || '',
+      chainId: 11155111,
+      // gas: 50_000_000_000,
+      accounts: [argv.privateKey],
+    },
   },
   etherscan: {
     //  https://hardhat.org/plugins/nomiclabs-hardhat-etherscan.html#multiple-api-keys-and-alternative-block-explorers
     apiKey: {
       mainnet: argv.networkScanKey,
       goerli: argv.networkScanKey,
+      sepolia: argv.networkScanKey,
       polygon: argv.networkScanKeyMatic || argv.networkScanKey,
       opera: argv.networkScanKeyFtm || argv.networkScanKey,
       arbitrumTestnet: argv.networkScanKeyArbitrum || argv.networkScanKey,

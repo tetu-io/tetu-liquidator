@@ -21,9 +21,9 @@ const META: {
   swapper: string,
 }[] = [
   {
-    tokenIn: EthAddresses.wstETH_TOKEN,
+    tokenIn: EthAddresses.rETH_TOKEN,
     tokenOut: EthAddresses.WETH_TOKEN,
-    pool: '0x32296969Ef14EB0c6d29669C550D4a0449130230',
+    pool: '0x1E19CF2D73a72Ef1332C882F20534B6519Be0276',
     swapper: BALANCER_STABLE_SWAPPER,
   },
 ]
