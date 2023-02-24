@@ -19,7 +19,7 @@ contract Uni2Swapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant UNI_SWAPPER_VERSION = "1.0.1";
+  string public constant UNI_SWAPPER_VERSION = "1.0.2";
   uint public constant FEE_DENOMINATOR = 100_000;
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
 
@@ -71,12 +71,12 @@ contract Uni2Swapper is ControllableV3, ISwapper {
   function getPrice(
     address pool,
     address tokenIn,
-    address tokenOut,
+    address /*tokenOut*/,
     uint amount
   ) external view override returns (uint) {
-    (uint reserveIn, uint reserveOut) = _getReserves(IUniswapV2Pair(pool), tokenIn, tokenOut);
+    (uint reserveIn, uint reserveOut) = getReserves(IUniswapV2Pair(pool), tokenIn);
     uint fee = feeByFactory[IUniswapV2Pair(pool).factory()];
-    return _getAmountOut(amount, reserveIn, reserveOut, fee);
+    return getAmountOut(amount, reserveIn, reserveOut, fee);
   }
 
   // *************************************************************
@@ -105,14 +105,14 @@ contract Uni2Swapper is ControllableV3, ISwapper {
 
       require(fee != 0, "ZERO_FEE");
 
-      (uint reserveIn, uint reserveOut) = _getReserves(IUniswapV2Pair(pool), tokenIn, tokenOut);
-      uint amountOut = _getAmountOut(amountIn, reserveIn, reserveOut, fee);
+      (uint reserveIn, uint reserveOut) = getReserves(IUniswapV2Pair(pool), tokenIn);
+      uint amountOut = getAmountOut(amountIn, reserveIn, reserveOut, fee);
 
       uint amountOutMax = getAmountOutMax(reserveIn, reserveOut, amountIn);
 
       require((amountOutMax - amountOut) * PRICE_IMPACT_DENOMINATOR / amountOutMax <= priceImpactTolerance, "!PRICE");
 
-      (address token0,) = _sortTokens(tokenIn, tokenOut);
+      address token0 = IUniswapV2Pair(pool).token0();
       (amount0Out, amount1Out) = tokenIn == token0 ? (uint(0), amountOut) : (amountOut, uint(0));
 
       IERC20(tokenIn).safeTransfer(pool, amountIn);
@@ -145,34 +145,25 @@ contract Uni2Swapper is ControllableV3, ISwapper {
   }
 
   /// @dev Fetches and sorts the reserves for a pair.
-  function _getReserves(
+  function getReserves(
     IUniswapV2Pair _lp,
-    address tokenA,
-    address tokenB
-  ) internal view returns (uint reserveA, uint reserveB) {
-    (address token0,) = _sortTokens(tokenA, tokenB);
+    address tokenA
+  ) public view returns (uint reserveA, uint reserveB) {
+    address token0 = _lp.token0();
     (uint reserve0, uint reserve1,) = _lp.getReserves();
     (reserveA, reserveB) = tokenA == token0 ? (reserve0, reserve1) : (reserve1, reserve0);
   }
 
   /// @dev Given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset
-  function _getAmountOut(
+  function getAmountOut(
     uint amountIn,
     uint reserveIn,
     uint reserveOut,
     uint fee
-  ) internal pure returns (uint amountOut) {
+  ) public pure returns (uint amountOut) {
     uint amountInWithFee = amountIn * (FEE_DENOMINATOR - fee);
     uint numerator = amountInWithFee * reserveOut;
     uint denominator = (reserveIn * FEE_DENOMINATOR) + amountInWithFee;
     amountOut = numerator / denominator;
-  }
-
-  /// @dev Returns sorted token addresses, used to handle return values from pairs sorted in this order
-  function _sortTokens(
-    address tokenA,
-    address tokenB
-  ) internal pure returns (address token0, address token1) {
-    (token0, token1) = tokenA < tokenB ? (tokenA, tokenB) : (tokenB, tokenA);
   }
 }

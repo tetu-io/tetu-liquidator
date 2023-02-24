@@ -135,6 +135,13 @@ describe("Uni2SwapperTests", function () {
     expect(balAfter.sub(bal)).above(parseUnits('4700', 6));
   });
 
+  it("getAmountOut test", async () => {
+    const amountOut = await swapper.getAmountOut(parseUnits('1'), parseUnits('2161259.320931568672954976'), parseUnits('181329.961813', 6), 100);
+    expect(amountOut).eq('83816')
+    const amountOutWrong = await swapper.getAmountOut(parseUnits('1'), parseUnits('181329.961813', 6), parseUnits('2161259.320931568672954976'), 100);
+    expect(amountOut).eq('83816')
+  });
+
 });
 
 

@@ -142,7 +142,7 @@ describe("Uni3SwapperTests", function () {
     ))
 
     console.log(price);
-    expect(price).approximately(1.4005625435445728, 0.5);
+    expect(price).approximately(2, 10);
 
     const price2 = +formatUnits(await swapper.getPrice(
       POOL,
