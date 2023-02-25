@@ -2,6 +2,7 @@ import {ethers} from "hardhat";
 import {IERC20Metadata__factory, TetuLiquidator__factory} from "../../typechain";
 import {RunHelper} from "../utils/RunHelper";
 import {MaticAddresses} from "../addresses/MaticAddresses";
+import {Misc} from "../utils/Misc";
 
 
 
@@ -19,10 +20,10 @@ const META: {
   swapper: string,
 }[] = [
   {
-    tokenIn: '0x3d468AB2329F296e1b9d8476Bb54Dd77D8c2320f',
-    tokenOut: '0x7fC9E0Aa043787BFad28e29632AdA302C790Ce33',
-    pool: '0xB797AdfB7b268faeaA90CAdBfEd464C76ee599Cd',
-    swapper: BALANCER_STABLE_SWAPPER,
+    tokenIn: '0xF93579002DBE8046c43FEfE86ec78b1112247BB8',
+    tokenOut: MaticAddresses.USDC_TOKEN,
+    pool: Misc.ZERO_ADDRESS,
+    swapper: Misc.ZERO_ADDRESS,
   },
 ]
 

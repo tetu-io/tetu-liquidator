@@ -18,6 +18,7 @@ export class EthAddresses {
   public static LIDO_TOKEN = "0x5A98FcBEA516Cf06857215779Fd812CA3beF1B32".toLowerCase();
   public static wstETH_TOKEN = "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0".toLowerCase();
   public static rETH_TOKEN = "0xae78736Cd615f374D3085123A210448E74Fc6393".toLowerCase();
+  public static wUSDR_TOKEN = "0xD5a14081a34d256711B02BbEf17E567da48E80b5".toLowerCase();
 
 
   // balancer

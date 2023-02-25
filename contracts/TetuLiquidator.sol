@@ -20,7 +20,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant LIQUIDATOR_VERSION = "1.0.0";
+  string public constant LIQUIDATOR_VERSION = "1.0.1";
   uint public constant ROUTE_LENGTH_MAX = 5;
 
 
@@ -43,6 +43,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
 
   event Liquidated(address indexed tokenIn, address indexed tokenOut, uint amount);
   event PoolAdded(PoolData poolData);
+  event PoolRemoved(address token);
   event BlueChipAdded(PoolData poolData);
 
   // *************************************************************
@@ -73,6 +74,14 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
 
       emit PoolAdded(pool);
     }
+  }
+
+  /// @dev Remove pool from data
+  function removeLargestPool(address token) external {
+    _onlyOperator();
+
+    delete largestPools[token];
+    emit PoolRemoved(token);
   }
 
   /// @dev Add largest pools with the most popular tokens on the current network
