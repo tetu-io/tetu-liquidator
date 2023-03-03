@@ -94,16 +94,17 @@ contract Uni3Swapper is ControllableV3, ISwapper, IUniswapV3SwapCallback {
     uint256 tokenOutDecimals = tokenIn == token1 ? IERC20Metadata(token0).decimals() : IERC20Metadata(token1).decimals();
     (uint160 sqrtPriceX96,,,,,,) = IUniswapV3Pool(pool).slot0();
 
-    uint divider = Math.max(10 ** tokenOutDecimals / 10 ** tokenInDecimals, 1);
+    uint divider = tokenOutDecimals < 18 ? Math.max(10 ** tokenOutDecimals / 10 ** tokenInDecimals, 1) : 1;
+
     uint priceDigits = _countDigits(uint(sqrtPriceX96));
     uint purePrice;
     uint precision;
     if (tokenIn == token0) {
-      precision = 10 ** ((priceDigits < 29 ? 29 - priceDigits : 0) + 18);
+      precision = 10 ** ((priceDigits < 29 ? 29 - priceDigits : 0) + tokenInDecimals);
       uint part = uint(sqrtPriceX96) * precision / TWO_96;
       purePrice = part * part;
     } else {
-      precision = 10 ** ((priceDigits > 29 ? priceDigits - 29 : 0) + 18);
+      precision = 10 ** ((priceDigits > 29 ? priceDigits - 29 : 0) + tokenInDecimals);
       uint part = TWO_96 * precision / uint(sqrtPriceX96);
       purePrice = part * part;
     }

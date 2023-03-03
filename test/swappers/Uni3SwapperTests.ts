@@ -113,7 +113,7 @@ describe("Uni3SwapperTests", function () {
     ), 6)
 
     console.log(price);
-    expect(price).approximately(1.206907, 0.5);
+    expect(price).approximately(2.8931, 0.3);
 
     const price2 = +formatUnits(await swapper.getPrice(
       POOL,
@@ -123,7 +123,7 @@ describe("Uni3SwapperTests", function () {
     ))
 
     console.log(price2);
-    expect(price2).approximately(0.8, 0.3)
+    expect(price2).approximately(0.34, 0.01)
   });
 
   it("lido to matic price", async () => {
@@ -142,7 +142,7 @@ describe("Uni3SwapperTests", function () {
     ))
 
     console.log(price);
-    expect(price).approximately(2, 10);
+    expect(price).approximately(2.4969021633, 0.010);
 
     const price2 = +formatUnits(await swapper.getPrice(
       POOL,
@@ -152,7 +152,65 @@ describe("Uni3SwapperTests", function () {
     ))
 
     console.log(price2);
-    expect(price2).approximately(0.7139988175531092, 0.3)
+    expect(price2).approximately(0.400, 0.1)
+  });
+
+  it("usdt to usdc price", async () => {
+    if(hre.network.config.chainId !== 137) {
+      return;
+    }
+    const USDT = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F';
+    const USDC = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
+    const POOL = '0xDaC8A8E6DBf8c690ec6815e0fF03491B2770255D'
+
+    const price = +formatUnits(await swapper.getPrice(
+        POOL,
+        USDT,
+        USDC,
+        parseUnits('1', 6)
+    ), 6)
+
+    console.log(price);
+    expect(price).approximately(1, 0.01);
+
+    const price2 = +formatUnits(await swapper.getPrice(
+        POOL,
+        USDC,
+        USDT,
+        parseUnits('1', 6)
+    ), 6)
+
+    console.log(price2);
+    expect(price2).approximately(1, 0.01)
+  });
+
+  it("wbtc to usdc price", async () => {
+    if(hre.network.config.chainId !== 137) {
+      return;
+    }
+    const WBTC = '0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6';
+    const USDC = '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174';
+    const POOL = '0x847b64f9d3A95e977D157866447a5C0A5dFa0Ee5'
+
+    const price = +formatUnits(await swapper.getPrice(
+        POOL,
+        WBTC,
+        USDC,
+        0
+    ), 6)
+
+    console.log(price);
+    expect(price).approximately(22468, 2000);
+
+    const price2 = +formatUnits(await swapper.getPrice(
+        POOL,
+        USDC,
+        WBTC,
+        0
+    ), 8)
+
+    console.log(price2);
+    expect(price2).approximately(0.0000445283, 0.00001)
   });
 
 });
