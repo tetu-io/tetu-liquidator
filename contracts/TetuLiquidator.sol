@@ -20,7 +20,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant LIQUIDATOR_VERSION = "1.0.1";
+  string public constant LIQUIDATOR_VERSION = "1.0.2";
   uint public constant ROUTE_LENGTH_MAX = 5;
 
 
@@ -100,6 +100,14 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
 
       emit BlueChipAdded(pool);
     }
+  }
+
+  function removeBlueChipPool(address tokenIn, address tokenOut) external {
+    _onlyOperator();
+
+    delete blueChipsPools[tokenIn][tokenOut];
+    delete blueChipsTokens[tokenIn];
+    // do not remove tokenOut, assume tha tokenIn is the main target for the removing
   }
 
   // *************************************************************

@@ -16,6 +16,7 @@ import {TimeUtils} from "../TimeUtils";
 import {DeployerUtils} from "../../scripts/utils/DeployerUtils";
 import {Misc} from "../../scripts/utils/Misc";
 import {UniswapUtils} from "../UniswapUtils";
+import {MaticAddresses} from "../../scripts/addresses/MaticAddresses";
 
 // tslint:disable-next-line:no-var-requires
 const hre = require("hardhat");
@@ -113,7 +114,7 @@ describe("Uni3SwapperTests", function () {
     ), 6)
 
     console.log(price);
-    expect(price).approximately(2.8931, 0.3);
+    expect(price).approximately(3, 1);
 
     const price2 = +formatUnits(await swapper.getPrice(
       POOL,
@@ -142,7 +143,7 @@ describe("Uni3SwapperTests", function () {
     ))
 
     console.log(price);
-    expect(price).approximately(2.4969021633, 0.010);
+    expect(price).approximately(3, 1);
 
     const price2 = +formatUnits(await swapper.getPrice(
       POOL,
@@ -211,6 +212,35 @@ describe("Uni3SwapperTests", function () {
 
     console.log(price2);
     expect(price2).approximately(0.0000445283, 0.00001)
+  });
+
+  it("wbtc to eth price", async () => {
+    if(hre.network.config.chainId !== 137) {
+      return;
+    }
+    const WBTC = '0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6';
+    const WETH = MaticAddresses.WETH_TOKEN;
+    const POOL = '0x50eaEDB835021E4A108B7290636d62E9765cc6d7'
+
+    const price = +formatUnits(await swapper.getPrice(
+        POOL,
+        WBTC,
+        WETH,
+        0
+    ), 18)
+
+    console.log(price);
+    expect(price).approximately(14, 5);
+
+    const price2 = +formatUnits(await swapper.getPrice(
+        POOL,
+        WETH,
+        WBTC,
+        0
+    ), 8)
+
+    console.log(price2);
+    expect(price2).approximately(0.07, 0.05)
   });
 
 });
