@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.17;
 
-interface IControllable {
+interface ILiquidatorControllable {
 
   function isController(address _contract) external view returns (bool);
 

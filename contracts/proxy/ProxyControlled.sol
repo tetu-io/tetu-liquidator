@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.17;
 
-import "../interfaces/IControllable.sol";
+import "../interfaces/ILiquidatorControllable.sol";
 import "../interfaces/IProxyControlled.sol";
 import "./UpgradeableProxy.sol";
 
@@ -18,7 +18,7 @@ contract ProxyControlled is UpgradeableProxy, IProxyControlled {
   /// @dev Initialize proxy implementation. Need to call after deploy new proxy.
   function initProxy(address _logic) external override {
     //make sure that given logic is controllable and not inited
-    require(IControllable(_logic).created() == 0, "Proxy: Wrong implementation");
+    require(ILiquidatorControllable(_logic).created() == 0, "Proxy: Wrong implementation");
     _init(_logic);
   }
 
@@ -26,11 +26,11 @@ contract ProxyControlled is UpgradeableProxy, IProxyControlled {
   /// @dev Upgrade allowed only for Controller and should be done only after time-lock period
   /// @param _newImplementation Implementation address
   function upgrade(address _newImplementation) external override {
-    require(IControllable(address(this)).isController(msg.sender), "Proxy: Forbidden");
-    IControllable(address(this)).increaseRevision(_implementation());
+    require(ILiquidatorControllable(address(this)).isController(msg.sender), "Proxy: Forbidden");
+    ILiquidatorControllable(address(this)).increaseRevision(_implementation());
     _upgradeTo(_newImplementation);
     // the new contract must have the same ABI and you must have the power to change it again
-    require(IControllable(address(this)).isController(msg.sender), "Proxy: Wrong implementation");
+    require(ILiquidatorControllable(address(this)).isController(msg.sender), "Proxy: Wrong implementation");
   }
 
   /// @notice Return current logic implementation

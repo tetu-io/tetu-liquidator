@@ -2,11 +2,11 @@
 
 pragma solidity 0.8.17;
 
-import "./interfaces/IController.sol";
+import "./interfaces/ILiquidatorController.sol";
 import "./interfaces/IProxyControlled.sol";
 
 
-contract Controller is IController {
+contract Controller is ILiquidatorController {
 
   // *************************************************************
   //                        VARIABLES

@@ -56,7 +56,7 @@ contract TetuLiquidator is ReentrancyGuard, ControllableV3, ITetuLiquidator {
   }
 
   function _onlyOperator() internal view {
-    require(IController(controller()).isOperator(msg.sender), "DENIED");
+    require(ILiquidatorController(controller()).isOperator(msg.sender), "DENIED");
   }
 
   // *************************************************************

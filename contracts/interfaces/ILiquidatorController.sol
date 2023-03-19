@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.17;
 
-interface IController {
+interface ILiquidatorController {
 
   function governance() external view returns (address);
 

@@ -3,15 +3,15 @@
 pragma solidity 0.8.17;
 
 import "../openzeppelin/Initializable.sol";
-import "../interfaces/IControllable.sol";
-import "../interfaces/IController.sol";
+import "../interfaces/ILiquidatorControllable.sol";
+import "../interfaces/ILiquidatorController.sol";
 import "../lib/SlotsLib.sol";
 
 /// @title Implement basic functionality for any contract that require strict control
 /// @dev Can be used with upgradeable pattern.
 ///      Require call __Controllable_init() in any case.
 /// @author belbix
-abstract contract ControllableV3 is Initializable, IControllable {
+abstract contract ControllableV3 is Initializable, ILiquidatorControllable {
   using SlotsLib for bytes32;
 
   /// @notice Version of the contract
@@ -33,7 +33,7 @@ abstract contract ControllableV3 is Initializable, IControllable {
   /// @param controller_ Controller address
   function __Controllable_init(address controller_) public onlyInitializing {
     require(controller_ != address(0), "Zero controller");
-    require(IController(controller_).governance() != address(0), "Zero governance");
+    require(ILiquidatorController(controller_).governance() != address(0), "Zero governance");
     _CONTROLLER_SLOT.set(controller_);
     _CREATED_SLOT.set(block.timestamp);
     _CREATED_BLOCK_SLOT.set(block.number);
@@ -47,7 +47,7 @@ abstract contract ControllableV3 is Initializable, IControllable {
 
   /// @notice Return true if given address is setup as governance in Controller
   function isGovernance(address _value) public override view returns (bool) {
-    return IController(controller()).governance() == _value;
+    return ILiquidatorController(controller()).governance() == _value;
   }
 
   /// @dev Contract upgrade counter
