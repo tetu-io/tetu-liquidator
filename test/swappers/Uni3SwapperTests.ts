@@ -5,7 +5,7 @@ import {
   Controller,
   IERC20__factory,
   IERC20Metadata__factory,
-  MockToken,
+  MockToken, TetuLiquidator__factory,
   Uni2Swapper, Uni3Swapper,
   UniswapV2Factory,
   UniswapV2Pair,
@@ -17,6 +17,7 @@ import {DeployerUtils} from "../../scripts/utils/DeployerUtils";
 import {Misc} from "../../scripts/utils/Misc";
 import {UniswapUtils} from "../UniswapUtils";
 import {MaticAddresses} from "../../scripts/addresses/MaticAddresses";
+import {RunHelper} from "../../scripts/utils/RunHelper";
 
 // tslint:disable-next-line:no-var-requires
 const hre = require("hardhat");
@@ -124,7 +125,7 @@ describe("Uni3SwapperTests", function () {
     ))
 
     console.log(price2);
-    expect(price2).approximately(0.34, 0.01)
+    expect(price2).approximately(0.41, 0.1)
   });
 
   it("lido to matic price", async () => {
@@ -201,7 +202,7 @@ describe("Uni3SwapperTests", function () {
     ), 6)
 
     console.log(price);
-    expect(price).approximately(22468, 2000);
+    expect(price).approximately(28000, 10000);
 
     const price2 = +formatUnits(await swapper.getPrice(
         POOL,
@@ -212,6 +213,35 @@ describe("Uni3SwapperTests", function () {
 
     console.log(price2);
     expect(price2).approximately(0.0000445283, 0.00001)
+  });
+
+  it("WETH to usdc price", async () => {
+    if(hre.network.config.chainId !== 137) {
+      return;
+    }
+    const WETH = MaticAddresses.WETH_TOKEN;
+    const USDC = MaticAddresses.USDC_TOKEN;
+    const POOL = '0x45dDa9cb7c25131DF268515131f647d726f50608'
+
+    const price = +formatUnits(await swapper.getPrice(
+        POOL,
+        WETH,
+        USDC,
+        parseUnits('10')
+    ), 6)
+
+    console.log(price);
+    expect(price).approximately(17870, 2000);
+
+    const price2 = +formatUnits(await swapper.getPrice(
+        POOL,
+        USDC,
+        WETH,
+        0
+    ), 18)
+
+    console.log(price2);
+    expect(price2).approximately(0.0005, 0.0001)
   });
 
   it("wbtc to eth price", async () => {

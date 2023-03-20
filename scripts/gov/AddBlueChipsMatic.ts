@@ -17,9 +17,9 @@ const META: {
   tokenOut: string;
 }[] = [
   {
-    tokenIn: MaticAddresses.WBTC_TOKEN,
+    tokenIn: MaticAddresses.WETH_TOKEN,
     tokenOut: MaticAddresses.USDC_TOKEN,
-    pool: '0x50eaEDB835021E4A108B7290636d62E9765cc6d7',
+    pool: '0x45dDa9cb7c25131DF268515131f647d726f50608',
     swapper: UNI3_SWAPPER,
   },
 ]
@@ -29,7 +29,7 @@ async function main() {
 
   const liquidator = TetuLiquidator__factory.connect(LIQUIDATOR, signer);
 
-  await RunHelper.runAndWait(() => liquidator.addBlueChipsPools(META, false));
+  await RunHelper.runAndWait(() => liquidator.addBlueChipsPools(META, true));
 }
 
 

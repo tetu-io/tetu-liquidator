@@ -2,13 +2,13 @@ import {ethers} from "hardhat";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {expect} from "chai";
 import {
-  Controller,
   BalancerWeightedPoolSwapper,
+  Controller,
   MockToken,
-  WeightedPool,
   Vault,
+  WeightedPool,
 } from "../../typechain";
-import {parseUnits} from "ethers/lib/utils";
+import {formatUnits, parseUnits} from "ethers/lib/utils";
 import {TimeUtils} from "../TimeUtils";
 import {DeployerUtils} from "../../scripts/utils/DeployerUtils";
 
@@ -138,6 +138,9 @@ describe("BalancerWeightedPoolSwapperTests", function () {
     expect(
       await swapper.getPrice(weightedPool.address, usdc.address, bal.address, oneUSD)
     ).eq(parseUnits('99.7496882616'));
+    expect(
+      formatUnits(await swapper.getPrice(weightedPool.address, bal.address, usdc.address, parseUnits('100')), 6)
+    ).eq('0.997496');
   });
 
   it("get price test reverse", async () => {

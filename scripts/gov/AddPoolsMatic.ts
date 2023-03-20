@@ -20,10 +20,10 @@ const META: {
   swapper: string,
 }[] = [
   {
-    tokenIn: MaticAddresses.WBTC_TOKEN,
-    tokenOut: MaticAddresses.USDC_TOKEN,
-    pool: '0x847b64f9d3A95e977D157866447a5C0A5dFa0Ee5',
-    swapper: UNI3_SWAPPER,
+    tokenIn: MaticAddresses.BAL_TOKEN,
+    tokenOut: MaticAddresses.WETH_TOKEN,
+    pool: '0x3d468AB2329F296e1b9d8476Bb54Dd77D8c2320f',
+    swapper: BALANCER_WEIGHTED_SWAPPER,
   },
 ]
 
