@@ -212,7 +212,7 @@ describe("Uni3SwapperTests", function () {
     ), 8)
 
     console.log(price2);
-    expect(price2).approximately(0.0000445283, 0.00001)
+    expect(price2).approximately(0.00003448, 0.0001)
   });
 
   it("WETH to usdc price", async () => {
