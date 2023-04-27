@@ -74,6 +74,7 @@ export class MaticAddresses {
   public static bbamUSDC_TOKEN = '0xF93579002DBE8046c43FEfE86ec78b1112247BB8'.toLowerCase();
   public static LIDO_TOKEN = '0xC3C7d422809852031b44ab29EEC9F1EfF2A58756'.toLowerCase();
   public static DF_TOKEN = '0x08C15FA26E519A78a666D19CE5C646D55047e0a3'.toLowerCase();
+  public static wstETH_TOKEN = '0x03b54A6e9a984069379fae1a4fC4dBAE93B3bCCD'.toLowerCase();
 
   // public static dQUICK_TOKEN = "".toLowerCase();
 
@@ -211,6 +212,10 @@ export class MaticAddresses {
   public static BALANCER_POOL_WMATIC_USDC_WETH_BAL_ID = '0x0297e37f1873d2dab4487aa67cd56b58e2f27875000100000000000000000002'.toLowerCase();
   public static BALANCER_BAL_ETH_POOL = '0x3d468AB2329F296e1b9d8476Bb54Dd77D8c2320f'.toLowerCase();
   public static BALANCER_STABLE_POOL = '0x06Df3b2bbB68adc8B0e302443692037ED9f91b42'.toLowerCase();
+  public static BB_T_USD = '0xb3d658d5b95bf04e2932370dd1ff976fe18dd66a'.toLowerCase();
+  public static BB_T_USDC = '0xae646817e458c0be890b81e8d880206710e3c44e'.toLowerCase();
+  public static BB_T_USDT = '0x7c82a23b4c48d796dee36a9ca215b641c6a8709d'.toLowerCase();
+  public static BALANCER_COMPOSABLE_STABLE_POOL_wstETH_WETH = '0x65Fe9314bE50890Fb01457be076fAFD05Ff32B9A'.toLowerCase();
 
   // KLIMA
   public static KLIMA_STAKING = '0x25d28a24Ceb6F81015bB0b2007D795ACAc411b4d'.toLowerCase();
