@@ -1,9 +1,6 @@
-import {ethers, web3} from "hardhat";
+import {ethers} from "hardhat";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {BigNumber, BigNumberish, ContractFactory, utils} from "ethers";
-import {Misc} from "./Misc";
-import logSettings from "../../log_settings";
-import {Logger} from "tslog";
+import {BigNumber, BigNumberish, ContractFactory} from "ethers";
 import {parseEther, parseUnits} from "ethers/lib/utils";
 import {
   Authorizer,
@@ -17,25 +14,16 @@ import {
   ProxyControlled,
   TetuLiquidator__factory,
   Uni2Swapper__factory,
-  UniswapV2Factory,
   Vault,
   Vault__factory,
   WeightedPool,
-  StablePool, Uni3Swapper__factory
+  StablePool, Uni3Swapper__factory, BalancerComposableStablePoolSwapper__factory
 } from "../../typechain";
-import {VerifyUtils} from "./VerifyUtils";
 import {RunHelper} from "./RunHelper";
-import {Libraries} from "@nomiclabs/hardhat-ethers/types";
 import {deployContract} from "../deploy/DeployContract";
 
 // tslint:disable-next-line:no-var-requires
 const hre = require("hardhat");
-const log: Logger = new Logger(logSettings);
-
-
-const libraries = new Map<string, string>([
-  ['VeTetu', 'VeTetuLogo']
-]);
 
 const PAUSE_WINDOW_DURATION = BigNumber.from(90 * 24 * 3600);
 const BUFFER_PERIOD_DURATION = BigNumber.from(30 * 24 * 3600);
@@ -109,6 +97,13 @@ export class DeployerUtils {
   public static async deployBalancerStablePoolSwapper(signer: SignerWithAddress, controller: string, balancerVault: string) {
     const proxy = await DeployerUtils.deployProxy(signer, 'BalancerStablePoolSwapper')
     const swapper = BalancerStablePoolSwapper__factory.connect(proxy, signer);
+    await RunHelper.runAndWait(() => swapper.init(controller, balancerVault, {gasLimit: 8_000_000}))
+    return swapper;
+  }
+
+  public static async deployBalancerComposableStablePoolSwapper(signer: SignerWithAddress, controller: string, balancerVault: string) {
+    const proxy = await DeployerUtils.deployProxy(signer, 'BalancerComposableStablePoolSwapper')
+    const swapper = BalancerComposableStablePoolSwapper__factory.connect(proxy, signer);
     await RunHelper.runAndWait(() => swapper.init(controller, balancerVault, {gasLimit: 8_000_000}))
     return swapper;
   }
