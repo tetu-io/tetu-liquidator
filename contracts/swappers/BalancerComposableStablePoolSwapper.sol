@@ -24,7 +24,7 @@ contract BalancerComposableStablePoolSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant BALANCER_COMPOSABLE_STABLE_POOL_SWAPPER_VERSION = "1.0.1";
+  string public constant BALANCER_COMPOSABLE_STABLE_POOL_SWAPPER_VERSION = "1.0.2";
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
 
   uint private constant _LIMIT = 1;
@@ -77,7 +77,7 @@ contract BalancerComposableStablePoolSwapper is ControllableV3, ISwapper {
     IBComposableStablePoolMinimal _pool = IBComposableStablePoolMinimal(pool);
     { // take pool commission
       uint swapFeePercentage = _pool.getSwapFeePercentage();
-      amount -= amount * swapFeePercentage / 10**18;
+      amount -= FixedPoint.mulUp(amount, swapFeePercentage);
     }
     bytes32 poolId = _pool.getPoolId();
     (IERC20[] memory tokens, uint[] memory balances,) = IBVault(balancerVault).getPoolTokens(poolId);
