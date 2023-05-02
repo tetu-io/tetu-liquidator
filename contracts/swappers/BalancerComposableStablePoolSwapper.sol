@@ -24,7 +24,7 @@ contract BalancerComposableStablePoolSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant BALANCER_COMPOSABLE_STABLE_POOL_SWAPPER_VERSION = "1.0.0";
+  string public constant BALANCER_COMPOSABLE_STABLE_POOL_SWAPPER_VERSION = "1.0.1";
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
 
   uint private constant _LIMIT = 1;
@@ -104,14 +104,15 @@ contract BalancerComposableStablePoolSwapper is ControllableV3, ISwapper {
     require(tokenInIndex < len, 'Wrong tokenIn');
     require(tokenOutIndex < len, 'Wrong tokenOut');
 
+    uint[] memory scalingFactors = _pool.getScalingFactors();
+    ScaleLib._upscaleArray(balances, scalingFactors);
+
     uint bptIndex = _pool.getBptIndex();
     balances = _dropBptItem(balances, bptIndex);
     tokenInIndex = _skipBptIndex(tokenInIndex, bptIndex);
     tokenOutIndex = _skipBptIndex(tokenOutIndex, bptIndex);
 
     (uint currentAmp,,) = _pool.getAmplificationParameter();
-    uint[] memory scalingFactors = _pool.getScalingFactors();
-    ScaleLib._upscaleArray(balances, scalingFactors);
     {
     uint invariant = StableMath._calculateInvariant(currentAmp, balances, true);
     uint upscaledAmount = ScaleLib._upscale(amount, scalingFactors[tokenInIndex]);
