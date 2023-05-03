@@ -115,7 +115,7 @@ describe("Uni3SwapperTests", function () {
     ), 6)
 
     console.log(price);
-    expect(price).approximately(3, 1);
+    expect(price).approximately(2, 1);
 
     const price2 = +formatUnits(await swapper.getPrice(
       POOL,

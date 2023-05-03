@@ -50,8 +50,8 @@ export async function deployContract<T extends ContractFactory>(
   // } else if (hre.network.name === 'mumbai') {
   //   gas = 5_000_000;
   // }
-  // const instance = await _factory.deploy(...args, {gasLimit: gas, gasPrice: Math.floor(+gasPrice * 1.1)});
-  const instance = await _factory.deploy(...args);
+  const instance = await _factory.deploy(...args, {gasPrice: Math.floor(+gasPrice * 1.2)});
+  // const instance = await _factory.deploy(...args);
   log.info('Deploy tx:', instance.deployTransaction.hash);
   await instance.deployed();
 
