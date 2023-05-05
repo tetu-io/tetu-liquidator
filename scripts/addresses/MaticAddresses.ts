@@ -215,6 +215,7 @@ export class MaticAddresses {
   public static BB_T_USD = '0xb3d658d5b95bf04e2932370dd1ff976fe18dd66a'.toLowerCase();
   public static BB_T_USDC = '0xae646817e458c0be890b81e8d880206710e3c44e'.toLowerCase();
   public static BB_T_USDT = '0x7c82a23b4c48d796dee36a9ca215b641c6a8709d'.toLowerCase();
+  public static BB_T_DAI = '0xDa1CD1711743e57Dd57102E9e61b75f3587703da'.toLowerCase();
   public static BALANCER_COMPOSABLE_STABLE_POOL_wstETH_WETH = '0x65Fe9314bE50890Fb01457be076fAFD05Ff32B9A'.toLowerCase();
 
   // KLIMA

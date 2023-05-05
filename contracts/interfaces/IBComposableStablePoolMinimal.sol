@@ -24,4 +24,5 @@ interface IBComposableStablePoolMinimal {
     function getAmplificationParameter() external view returns (uint256 value, bool isUpdating, uint256 precision);
     function getScalingFactors() external view returns (uint256[] memory);
     function getBptIndex() external view returns (uint256);
+    function updateTokenRateCache(address token) external;
 }

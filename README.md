@@ -25,7 +25,7 @@ This solution is able to liquidate token to another token with strict predefined
 | BalancerStableSwapper           | [0xc43e971566B8CCAb815C3E20b9dc66571541CeB4](https://polygonscan.com/address/0xc43e971566B8CCAb815C3E20b9dc66571541CeB4#readProxyContract) |
 | BalancerWeightedSwapper         | [0x0bcbE4653e96aE39bde24312882faA0EdDF03256](https://polygonscan.com/address/0x0bcbE4653e96aE39bde24312882faA0EdDF03256#readProxyContract) |
 | UniV3Swapper                    | [0x7b505210a0714d2a889E41B59edc260Fa1367fFe](https://polygonscan.com/address/0x7b505210a0714d2a889E41B59edc260Fa1367fFe#readProxyContract) |
-| BalancerComposableStableSwapper | [0xD93519327c133CC6d0Dc86c4749F2809Aa554a5F](https://polygonscan.com/address/0xD93519327c133CC6d0Dc86c4749F2809Aa554a5F#readProxyContract) |
+| BalancerComposableStableSwapper | [0xFae1b6961F4a24B8A02AD4B4C66de447c35bf09f](https://polygonscan.com/address/0xFae1b6961F4a24B8A02AD4B4C66de447c35bf09f#readProxyContract) |
 
 
 ## BSC addresses
