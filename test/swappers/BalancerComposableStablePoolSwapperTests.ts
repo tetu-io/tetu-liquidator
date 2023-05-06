@@ -155,11 +155,10 @@ describe("BalancerComposableStablePoolSwapperTests", function () {
     const price = await swapper.getPrice(pool.address, MaticAddresses.wstETH_TOKEN, MaticAddresses.WETH_TOKEN, amount);
     console.log('delta', balDelta.abs()); // return value is negative delta for pool
     console.log('price', price);
-    expect(price).gte(balDelta.abs().sub(1));
-    expect(price).lte(balDelta.abs().add(1));
+    expect(price).eq(balDelta.abs());
   });
 
-  it("get price eq queryBatchSwap on bb-t-USD pool", async () => {
+  it("get price eq queryBatchSwap on bb-t-USD pool BB_T_USDC -> BB_T_DAI", async () => {
     const vault = IBVault__factory.connect(MaticAddresses.BALANCER_VAULT, signer)
     const pool = IBComposableStablePoolMinimal__factory.connect(MaticAddresses.BB_T_USD, signer)
     const amount = parseUnits('1');
@@ -183,21 +182,24 @@ describe("BalancerComposableStablePoolSwapperTests", function () {
 
     const SWAP_KIND_GIVEN_IN = '0';
 
+    await pool.updateTokenRateCache(MaticAddresses.BB_T_USDC)
+    await pool.updateTokenRateCache(MaticAddresses.BB_T_USDT)
+    await pool.updateTokenRateCache(MaticAddresses.BB_T_DAI)
+
     const [, balDelta] = await vault.callStatic.queryBatchSwap(
         SWAP_KIND_GIVEN_IN,
         [batchSwapStep],
-        [MaticAddresses.BB_T_USDC, MaticAddresses.BB_T_USDT],
+        [MaticAddresses.BB_T_USDC, MaticAddresses.BB_T_DAI],
         funds
     );
 
-    const price = await swapper.getPrice(pool.address, MaticAddresses.BB_T_USDC, MaticAddresses.BB_T_USDT, amount);
+    const price = await swapper.getPrice(pool.address, MaticAddresses.BB_T_USDC, MaticAddresses.BB_T_DAI, amount);
     console.log('delta', balDelta.abs()); // return value is negative delta for pool
     console.log('price', price);
-    expect(price).eq(balDelta.abs().sub(1));
-    expect(price).lte(balDelta.abs().add(1));
+    expect(price).eq(balDelta.abs());
   });
 
-  it("get price eq queryBatchSwap on bb-t-USD pool reverse order", async () => {
+  it("get price eq queryBatchSwap on bb-t-USD pool BB_T_USDT -> BB_T_USDC", async () => {
     const vault = IBVault__factory.connect(MaticAddresses.BALANCER_VAULT, signer)
     const pool = IBComposableStablePoolMinimal__factory.connect(MaticAddresses.BB_T_USD, signer)
     const amount = BigNumber.from('994463103528401149');
@@ -221,6 +223,10 @@ describe("BalancerComposableStablePoolSwapperTests", function () {
 
     const SWAP_KIND_GIVEN_IN = '0';
 
+    await pool.updateTokenRateCache(MaticAddresses.BB_T_USDC)
+    await pool.updateTokenRateCache(MaticAddresses.BB_T_USDT)
+    await pool.updateTokenRateCache(MaticAddresses.BB_T_DAI)
+
     const [, balDelta] = await vault.callStatic.queryBatchSwap(
         SWAP_KIND_GIVEN_IN,
         [batchSwapStep],
@@ -231,7 +237,6 @@ describe("BalancerComposableStablePoolSwapperTests", function () {
     const price = await swapper.getPrice(pool.address, MaticAddresses.BB_T_USDT, MaticAddresses.BB_T_USDC, amount);
     console.log('delta', balDelta.abs()); // return value is negative delta for pool
     console.log('price', price);
-    expect(price).gte(balDelta.abs().sub(1));
-    expect(price).lte(balDelta.abs().add(1));
+    expect(price).eq(balDelta.abs());
   });
 });
