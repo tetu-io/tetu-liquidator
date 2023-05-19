@@ -5,7 +5,8 @@
 export class EthAddresses {
 
   public static ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-  public static GOV_ADDRESS = "0x4bE13bf2B983C31414b358C634bbb61230c332A7".toLowerCase();
+  // public static GOV_ADDRESS = "0x4bE13bf2B983C31414b358C634bbb61230c332A7".toLowerCase();
+  public static GOV_ADDRESS = "0xbbbbb8C4364eC2ce52c59D2Ed3E56F307E529a94".toLowerCase();
   // tokens
   public static BAL_TOKEN = "0xba100000625a3754423978a60c9317c58a424e3D".toLowerCase();
   public static WETH_TOKEN = "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase();

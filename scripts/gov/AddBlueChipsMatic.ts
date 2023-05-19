@@ -17,9 +17,9 @@ const META: {
   tokenOut: string;
 }[] = [
   {
-    tokenIn: MaticAddresses.WETH_TOKEN,
+    tokenIn: MaticAddresses.DAI_TOKEN,
     tokenOut: MaticAddresses.USDC_TOKEN,
-    pool: '0x45dDa9cb7c25131DF268515131f647d726f50608',
+    pool: '0x5645dCB64c059aa11212707fbf4E7F984440a8Cf',
     swapper: UNI3_SWAPPER,
   },
 ]

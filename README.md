@@ -6,13 +6,14 @@ This solution is able to liquidate token to another token with strict predefined
 
 ## Mainnet addresses
 
-| Name                     | Address                                                                                                                                 |
-|--------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| Controller               | [0x053bEc42CA1Cb2E58E27097E5EC3FDf3B7BEc767](https://etherscan.io/address/0x053bEc42CA1Cb2E58E27097E5EC3FDf3B7BEc767#readProxyContract) |
-| Liquidator               | [0x90351d15F036289BE9b1fd4Cb0e2EeC63a9fF9b0](https://etherscan.io/address/0x90351d15F036289BE9b1fd4Cb0e2EeC63a9fF9b0#readProxyContract) |
-| UniV2Swapper             | [0x96cee247B587c19D5570dae254d57958e92D75f0](https://etherscan.io/address/0x96cee247B587c19D5570dae254d57958e92D75f0#readProxyContract) |
-| BalancerStableSwapper    | [0xa4320b575e86cFa06379B8eD8C76d9149A30F948](https://etherscan.io/address/0xa4320b575e86cFa06379B8eD8C76d9149A30F948#readProxyContract) |
-| BalancerWeightedSwapper  | [0x7eFC54ED20E32EA76497CB241c7E658E3B29B04B](https://etherscan.io/address/0x7eFC54ED20E32EA76497CB241c7E658E3B29B04B#readProxyContract) |
+| Name                    | Address                                                                                                                                 |
+|-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| Controller              | [0x053bEc42CA1Cb2E58E27097E5EC3FDf3B7BEc767](https://etherscan.io/address/0x053bEc42CA1Cb2E58E27097E5EC3FDf3B7BEc767#readProxyContract) |
+| Liquidator              | [0x90351d15F036289BE9b1fd4Cb0e2EeC63a9fF9b0](https://etherscan.io/address/0x90351d15F036289BE9b1fd4Cb0e2EeC63a9fF9b0#readProxyContract) |
+| UniV2Swapper            | [0x96cee247B587c19D5570dae254d57958e92D75f0](https://etherscan.io/address/0x96cee247B587c19D5570dae254d57958e92D75f0#readProxyContract) |
+| BalancerStableSwapper   | [0xa4320b575e86cFa06379B8eD8C76d9149A30F948](https://etherscan.io/address/0xa4320b575e86cFa06379B8eD8C76d9149A30F948#readProxyContract) |
+| BalancerWeightedSwapper | [0x7eFC54ED20E32EA76497CB241c7E658E3B29B04B](https://etherscan.io/address/0x7eFC54ED20E32EA76497CB241c7E658E3B29B04B#readProxyContract) |
+| UniV3Swapper            | [0x708137a379D2bC067F6553396AD528FF9a00f1D3](https://etherscan.io/address/0x708137a379D2bC067F6553396AD528FF9a00f1D3#readProxyContract) |
 
 ## Polygon addresses
 
@@ -26,7 +27,6 @@ This solution is able to liquidate token to another token with strict predefined
 | BalancerWeightedSwapper         | [0x0bcbE4653e96aE39bde24312882faA0EdDF03256](https://polygonscan.com/address/0x0bcbE4653e96aE39bde24312882faA0EdDF03256#readProxyContract) |
 | UniV3Swapper                    | [0x7b505210a0714d2a889E41B59edc260Fa1367fFe](https://polygonscan.com/address/0x7b505210a0714d2a889E41B59edc260Fa1367fFe#readProxyContract) |
 | BalancerComposableStableSwapper | [0xFae1b6961F4a24B8A02AD4B4C66de447c35bf09f](https://polygonscan.com/address/0xFae1b6961F4a24B8A02AD4B4C66de447c35bf09f#readProxyContract) |
-
 
 ## BSC addresses
 
