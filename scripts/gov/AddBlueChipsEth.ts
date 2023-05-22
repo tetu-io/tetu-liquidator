@@ -11,13 +11,12 @@ import {Misc} from "../utils/Misc";
 import {RunHelper} from "../utils/RunHelper";
 
 const bc = [
-  "0xb4e16d0168e52d35cacd2c6185b44281ec28c9dc", // usdc/eth
-  "0xae461ca67b15dc8dc81ce7615e0320da1a9ab8d5", // usdc/dai
-  "0x0d4a11d5eeaac28ec3f61d100daf4d40471f1852", // eth/usdt
+  "0x99ac8cA7087fA4A2A1FB6357269965A2014ABc35", // usdc/wbtc
 ]
 
 const LIQUIDATOR = '0x90351d15F036289BE9b1fd4Cb0e2EeC63a9fF9b0';
 const UNI2_SWAPPER = '0x96cee247B587c19D5570dae254d57958e92D75f0';
+const UNI3_SWAPPER = '0x708137a379D2bC067F6553396AD528FF9a00f1D3';
 
 async function main() {
   const [signer] = await ethers.getSigners();
@@ -31,14 +30,14 @@ async function main() {
     tokenOut: string;
   }[] = [];
   for (const bcAdr of bc) {
-    const name = await IERC20Metadata__factory.connect(bcAdr, signer).name();
+    // const name = await IERC20Metadata__factory.connect(bcAdr, signer).name();
     const token0 = await IUniswapV2Pair__factory.connect(bcAdr, signer).token0();
     const token1 = await IUniswapV2Pair__factory.connect(bcAdr, signer).token1();
-    console.log(bcAdr, name);
+    // console.log(bcAdr, name);
     pools.push(
       {
         pool: bcAdr,
-        swapper: UNI2_SWAPPER,
+        swapper: UNI3_SWAPPER,
         tokenIn: token0,
         tokenOut: token1
       }

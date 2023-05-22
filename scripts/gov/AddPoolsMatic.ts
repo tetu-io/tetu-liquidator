@@ -21,7 +21,7 @@ const META: {
   swapper: string,
 }[] = [
   {
-    tokenIn: '0xFae1b6961F4a24B8A02AD4B4C66de447c35bf09f',
+    tokenIn: MaticAddresses.maticX,
     tokenOut: MaticAddresses.WMATIC_TOKEN,
     pool: '0xb20fC01D21A50d2C734C4a1262B4404d41fA7BF0',
     swapper: BALANCER_COMPOSABLE_SWAPPER,

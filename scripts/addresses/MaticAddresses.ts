@@ -75,6 +75,7 @@ export class MaticAddresses {
   public static LIDO_TOKEN = '0xC3C7d422809852031b44ab29EEC9F1EfF2A58756'.toLowerCase();
   public static DF_TOKEN = '0x08C15FA26E519A78a666D19CE5C646D55047e0a3'.toLowerCase();
   public static wstETH_TOKEN = '0x03b54A6e9a984069379fae1a4fC4dBAE93B3bCCD'.toLowerCase();
+  public static maticX = '0xfa68FB4628DFF1028CFEc22b4162FCcd0d45efb6'.toLowerCase();
 
   // public static dQUICK_TOKEN = "".toLowerCase();
 
