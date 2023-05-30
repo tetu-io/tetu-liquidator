@@ -38,7 +38,7 @@ contract CurveSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   event Swap(
-    address pool,
+    address minter,
     address tokenIn,
     address tokenOut,
     address recipient,
@@ -104,8 +104,8 @@ contract CurveSwapper is ControllableV3, ISwapper {
     require(tokenOutIndex < len, 'Wrong tokenOut');
   }
 
-  function getTokensFromMinter(address minter) private returns(address[] memory) {
-    address memory tempTokens = new address(COINS_LENGTH_MAX);
+  function getTokensFromMinter(address minter) private view returns(address[] memory) {
+    address[] memory tempTokens = new address[](COINS_LENGTH_MAX);
     uint256 count = 0;
     for (uint256 i = 0; i < COINS_LENGTH_MAX; i++) {
       address coin = getCoin(ICurveMinter(minter), i);
@@ -116,7 +116,7 @@ contract CurveSwapper is ControllableV3, ISwapper {
       count++;
     }
 
-    address memory foundTokens = new address(count);
+    address[] memory foundTokens = new address[](count);
     for (uint256 j = 0; j < count; j++) {
       foundTokens[j] = tempTokens[j];
     }
@@ -160,11 +160,10 @@ contract CurveSwapper is ControllableV3, ISwapper {
     {
       uint minimalAmount = amountIn / 1000;
       require(minimalAmount != 0, "Too low amountIn");
-      uint price = getPrice(pool, tokenIn, tokenOut, minimalAmount);
+      uint price = getPrice(minter, tokenIn, tokenOut, minimalAmount);
       amountOutMax = price * amountIn / minimalAmount;
     }
 
-    IERC20(tokenIn).transferFrom(msg.sender, address(this), amountIn);
     require(IERC20(tokenIn).balanceOf(address(this)) >= amountIn,
       "Wrong amountIn"
     );
@@ -183,7 +182,7 @@ contract CurveSwapper is ControllableV3, ISwapper {
     IERC20(tokenOut).transfer(recipient, amountOut);
 
     emit Swap(
-      pool,
+      minter,
       tokenIn,
       tokenOut,
       recipient,
