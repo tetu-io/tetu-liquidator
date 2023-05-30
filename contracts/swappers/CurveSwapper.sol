@@ -3,6 +3,7 @@
 pragma solidity 0.8.17;
 
 import "../openzeppelin/SafeERC20.sol";
+import "../openzeppelin/Strings.sol";
 import "../interfaces/IERC20.sol";
 import "../interfaces/ISwapper.sol";
 import "../interfaces/ICurveMinter.sol";
@@ -80,7 +81,7 @@ contract CurveSwapper is ControllableV3, ISwapper {
     address tokenOut
   ) public view returns (uint256 tokenInIndex, uint256 tokenOutIndex) {
 
-    address[] memory tokens = getTokensFromMinter(minter);
+    address[] memory tokens = _getTokensFromMinter(minter);
     uint len = tokens.length;
 
     tokenInIndex = type(uint).max;
@@ -104,11 +105,11 @@ contract CurveSwapper is ControllableV3, ISwapper {
     require(tokenOutIndex < len, 'Wrong tokenOut');
   }
 
-  function getTokensFromMinter(address minter) private view returns(address[] memory) {
+  function _getTokensFromMinter(address minter) private view returns(address[] memory) {
     address[] memory tempTokens = new address[](COINS_LENGTH_MAX);
     uint256 count = 0;
     for (uint256 i = 0; i < COINS_LENGTH_MAX; i++) {
-      address coin = getCoin(ICurveMinter(minter), i);
+      address coin = _getCoin(ICurveMinter(minter), i);
       if (coin == address(0)) {
         break;
       }
@@ -124,7 +125,7 @@ contract CurveSwapper is ControllableV3, ISwapper {
     return foundTokens;
   }
 
-  function getCoin(ICurveMinter minter, uint256 index) private view returns (address) {
+  function _getCoin(ICurveMinter minter, uint256 index) private view returns (address) {
     try minter.coins{gas: 6000}(index) returns (address coin) {
       return coin;
     } catch {}
@@ -156,30 +157,21 @@ contract CurveSwapper is ControllableV3, ISwapper {
     (uint256 tokenInIndex, uint256 tokenOutIndex) = getTokensIndex(minter, tokenIn, tokenOut);
 
     // scope for checking price impact
-    uint amountOutMax;
-    {
-      uint minimalAmount = amountIn / 1000;
-      require(minimalAmount != 0, "Too low amountIn");
-      uint price = getPrice(minter, tokenIn, tokenOut, minimalAmount);
-      amountOutMax = price * amountIn / minimalAmount;
-    }
+    uint256 priceBefore = getPrice(minter, tokenIn, tokenOut, amountIn);
 
-    require(IERC20(tokenIn).balanceOf(address(this)) >= amountIn,
-      "Wrong amountIn"
-    );
+    require(IERC20(tokenIn).balanceOf(address(this)) >= amountIn, "Wrong amountIn");
     IERC20(tokenIn).approve(minter, amountIn);
 
-    uint amountOut = curveMinter.exchange(tokenInIndex, tokenOutIndex, amountIn, _LIMIT);
-    require(IERC20(tokenOut).balanceOf(address(this)) >= amountOut,
-      "Wrong amountIn"
-    );
+    uint256 amountOut = curveMinter.exchange(tokenInIndex, tokenOutIndex, amountIn, _LIMIT);
+    require(IERC20(tokenOut).balanceOf(address(this)) >= amountOut, "Wrong amountOut");
 
-    require(amountOutMax < amountOut ||
-      (amountOutMax - amountOut) * PRICE_IMPACT_DENOMINATOR / amountOutMax <= priceImpactTolerance,
-      "!PRICE"
-    );
+    uint256 priceAfter = getPrice(minter, tokenIn, tokenOut, amountIn);
+    require(priceAfter <= priceBefore, "Price increased");
 
-    IERC20(tokenOut).transfer(recipient, amountOut);
+    uint256 priceImpact = (priceBefore - priceAfter) * PRICE_IMPACT_DENOMINATOR / priceBefore;
+    require(priceImpact < priceImpactTolerance, string(abi.encodePacked("!PRICE ", Strings.toString(priceImpact))));
+
+    IERC20(tokenOut).safeTransfer(recipient, amountOut);
 
     emit Swap(
       minter,
