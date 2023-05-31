@@ -13,7 +13,6 @@ import "../proxy/ControllableV3.sol";
 /// @author vpomo
 contract CurveSwapper is ControllableV3, ISwapper {
   using SafeERC20 for IERC20;
-  address public balancerVault;
 
   // *************************************************************
   //                        CONSTANTS
@@ -39,7 +38,7 @@ contract CurveSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   event Swap(
-    address minter,
+    address pool,
     address tokenIn,
     address tokenOut,
     address recipient,
@@ -65,15 +64,70 @@ contract CurveSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   function getPrice(
-    address minter,
+    address pool,
     address tokenIn,
     address tokenOut,
     uint amount
   ) public view override returns (uint) {
-    (uint256 tokenInIndex, uint256 tokenOutIndex) = getTokensIndex(minter, tokenIn, tokenOut);
+    address curveMinter = _getMinter(pool);
+    (uint256 tokenInIndex, uint256 tokenOutIndex) = getTokensIndex(curveMinter, tokenIn, tokenOut);
 
-    return ICurveMinter(minter).get_dy(tokenInIndex, tokenOutIndex, amount);
+    return _callGetDY(curveMinter, tokenInIndex, tokenOutIndex, amount);
   }
+
+  // *************************************************************
+  //                        SWAP
+  // *************************************************************
+
+  /// @dev Swap given tokenIn for tokenOut. Assume that tokenIn already sent to this contract.
+  /// @param pool Curve pool
+  /// @param tokenIn Token for sell
+  /// @param tokenOut Token for buy
+  /// @param recipient Recipient for tokenOut
+  /// @param priceImpactTolerance Price impact tolerance. Must include fees at least.
+  function swap(
+    address pool,
+    address tokenIn,
+    address tokenOut,
+    address recipient,
+    uint priceImpactTolerance
+  ) external override {
+    address curveMinter = _getMinter(pool);
+    uint amountIn = IERC20(tokenIn).balanceOf(address(this));
+
+    (uint256 tokenInIndex, uint256 tokenOutIndex) = getTokensIndex(curveMinter, tokenIn, tokenOut);
+
+    // scope for checking price impact
+    uint256 priceBefore = getPrice(pool, tokenIn, tokenOut, amountIn);
+
+    require(IERC20(tokenIn).balanceOf(address(this)) >= amountIn, "Wrong amountIn");
+    IERC20(tokenIn).approve(curveMinter, amountIn);
+
+    uint256 amountOut = _callExchange(curveMinter, tokenInIndex, tokenOutIndex, amountIn, _LIMIT);
+    require(IERC20(tokenOut).balanceOf(address(this)) >= amountOut, "Wrong amountOut");
+
+    uint256 priceAfter = getPrice(pool, tokenIn, tokenOut, amountIn);
+    require(priceAfter <= priceBefore, "Price increased");
+
+    uint256 priceImpact = (priceBefore - priceAfter) * PRICE_IMPACT_DENOMINATOR / priceBefore;
+    require(priceImpact < priceImpactTolerance, string(abi.encodePacked("!PRICE ", Strings.toString(priceImpact))));
+
+    IERC20(tokenOut).safeTransfer(recipient, amountOut);
+
+    emit Swap(
+      pool,
+      tokenIn,
+      tokenOut,
+      recipient,
+      priceImpactTolerance,
+      amountIn,
+      amountOut
+    );
+  }
+
+  // *************************************************************
+  //                        private functions
+  // *************************************************************
 
   function getTokensIndex(
     address minter,
@@ -109,7 +163,7 @@ contract CurveSwapper is ControllableV3, ISwapper {
     address[] memory tempTokens = new address[](COINS_LENGTH_MAX);
     uint256 count = 0;
     for (uint256 i = 0; i < COINS_LENGTH_MAX; i++) {
-      address coin = _getCoin(ICurveMinter(minter), i);
+      address coin = _getCoin(minter, i);
       if (coin == address(0)) {
         break;
       }
@@ -125,62 +179,72 @@ contract CurveSwapper is ControllableV3, ISwapper {
     return foundTokens;
   }
 
-  function _getCoin(ICurveMinter minter, uint256 index) private view returns (address) {
-    try minter.coins{gas: 6000}(index) returns (address coin) {
+  function _getCoin(address minter, uint256 index) private view returns (address) {
+    try ICurveMinter(minter).coins{gas: 6000}(index) returns (address coin) {
       return coin;
     } catch {}
     return address(0);
   }
 
-  // *************************************************************
-  //                        SWAP
-  // *************************************************************
+  function _convertToInt(uint256 number) private pure returns (int128) {
+    require(number < COINS_LENGTH_MAX, "Wrong token index");
+    int128[5] memory intArr = [int128(0), int128(1), int128(2), int128(3), int128(4)];
+    return intArr[number];
+  }
 
-  /// @dev Swap given tokenIn for tokenOut. Assume that tokenIn already sent to this contract.
-  /// @param minter Curve minter
-  /// @param tokenIn Token for sell
-  /// @param tokenOut Token for buy
-  /// @param recipient Recipient for tokenOut
-  /// @param priceImpactTolerance Price impact tolerance. Must include fees at least.
-  function swap(
-    address minter,
-    address tokenIn,
-    address tokenOut,
-    address recipient,
-    uint priceImpactTolerance
-  ) external override {
-
-    ICurveMinter curveMinter = ICurveMinter(minter);
-
-    uint amountIn = IERC20(tokenIn).balanceOf(address(this));
-
-    (uint256 tokenInIndex, uint256 tokenOutIndex) = getTokensIndex(minter, tokenIn, tokenOut);
-
-    // scope for checking price impact
-    uint256 priceBefore = getPrice(minter, tokenIn, tokenOut, amountIn);
-
-    require(IERC20(tokenIn).balanceOf(address(this)) >= amountIn, "Wrong amountIn");
-    IERC20(tokenIn).approve(minter, amountIn);
-
-    uint256 amountOut = curveMinter.exchange(tokenInIndex, tokenOutIndex, amountIn, _LIMIT);
-    require(IERC20(tokenOut).balanceOf(address(this)) >= amountOut, "Wrong amountOut");
-
-    uint256 priceAfter = getPrice(minter, tokenIn, tokenOut, amountIn);
-    require(priceAfter <= priceBefore, "Price increased");
-
-    uint256 priceImpact = (priceBefore - priceAfter) * PRICE_IMPACT_DENOMINATOR / priceBefore;
-    require(priceImpact < priceImpactTolerance, string(abi.encodePacked("!PRICE ", Strings.toString(priceImpact))));
-
-    IERC20(tokenOut).safeTransfer(recipient, amountOut);
-
-    emit Swap(
-      minter,
-      tokenIn,
-      tokenOut,
-      recipient,
-      priceImpactTolerance,
-      amountIn,
-      amountOut
+  function _getMinter(address pool) private view returns (address minter) {
+    (bool success, bytes memory returnData) = address(pool).staticcall(
+      abi.encodeWithSignature("minter()")
     );
+
+    if (success) {
+      minter = abi.decode(returnData,(address));
+    } else {
+      revert("The pool without minter");
+    }
+  }
+
+  function _callGetDY(
+    address minter, uint256 tokenInIndex, uint256 tokenOutIndex, uint256 dx
+  ) private view returns (uint256 dy) {
+
+    (bool uintSuccess, bytes memory uintReturnData) = minter.staticcall(
+      abi.encodeWithSignature("get_dy(uint256,uint256,uint256)",
+      tokenInIndex, tokenOutIndex, dx
+      )
+    );
+
+    if (uintSuccess) {
+      dy = abi.decode(uintReturnData,(uint256));
+    } else {
+      ( , bytes memory intReturnData) = minter.staticcall(
+        abi.encodeWithSignature("get_dy(int128,int128,uint256)",
+        _convertToInt(tokenInIndex), _convertToInt(tokenOutIndex), dx
+        )
+      );
+      dy = abi.decode(intReturnData,(uint256));
+    }
+  }
+
+  function _callExchange(
+    address minter, uint256 tokenInIndex, uint256 tokenOutIndex, uint256 dx, uint256 minDy
+  ) private returns (uint256 amountOut) {
+
+    (bool uintSuccess, bytes memory uintReturnData) = minter.call(
+      abi.encodeWithSignature("exchange(uint256,uint256,uint256,uint256)",
+      tokenInIndex, tokenOutIndex, dx, minDy
+      )
+    );
+
+    if (uintSuccess) {
+      amountOut = abi.decode(uintReturnData,(uint256));
+    } else {
+      ( , bytes memory intReturnData) = minter.call(
+        abi.encodeWithSignature("exchange(int128,int128,uint256,uint256)",
+        _convertToInt(tokenInIndex), _convertToInt(tokenOutIndex), dx, minDy
+        )
+      );
+      amountOut = abi.decode(intReturnData,(uint256));
+    }
   }
 }
