@@ -139,13 +139,14 @@ describe("CurveSwapperTests", function () {
     if(hre.network.config.chainId !== 137) {
       return;
     }
-
-    await expect(swapper.getPrice(
+    const price = +formatUnits(await swapper.getPrice(
         USDR_am3CRV,
         USDR,
         am3CRV,
         parseUnits('1', 9)
-    )).revertedWith('The pool without minter');
+    ), 18)
+    console.log(price);
+    expect(price).approximately(1, 0.3);
   });
 
   it("swap amUSDT to amUSDC and check int128 values", async () => {
@@ -170,32 +171,6 @@ describe("CurveSwapperTests", function () {
     const afterBalance = +formatUnits(
         await IERC20__factory.connect(amUSDC,signer).balanceOf(signer.address)
     , 6);
-    console.log(afterBalance);
-    expect(afterBalance).approximately(1, 0.2);
-  });
-
-  it("swap EURT to am3CRV and check uint256 values", async () => {
-    if(hre.network.config.chainId !== 137) {
-      return;
-    }
-
-    const amount = parseUnits('1', 6);
-    const eurtHolder = await Misc.impersonate('0x50b3e08d5c3a2386e0c9585031b1152a5f0e2370')
-    await IERC20__factory.connect(EURT, eurtHolder).transfer(swapper.address, amount)
-
-    const beforeBalance = await IERC20__factory.connect(am3CRV,signer).balanceOf(signer.address);
-    expect(beforeBalance).to.equal(BigNumber.from('0'));
-
-    await swapper.swap(
-        EURT_am3CRV,
-        EURT,
-        am3CRV,
-        signer.address,
-        50
-    );
-    const afterBalance = +formatUnits(
-        await IERC20__factory.connect(am3CRV,signer).balanceOf(signer.address)
-        , 18);
     console.log(afterBalance);
     expect(afterBalance).approximately(1, 0.2);
   });

@@ -107,7 +107,7 @@ contract CurveSwapper is ControllableV3, ISwapper {
     require(IERC20(tokenOut).balanceOf(address(this)) >= amountOut, "Wrong amountOut");
 
     uint256 priceAfter = getPrice(pool, tokenIn, tokenOut, amountIn);
-    require(priceAfter <= priceBefore, "Price increased");
+    require(priceAfter <= priceBefore, string(abi.encodePacked("Price increased ", Strings.toString(priceAfter-priceBefore))));
 
     uint256 priceImpact = (priceBefore - priceAfter) * PRICE_IMPACT_DENOMINATOR / priceBefore;
     require(priceImpact < priceImpactTolerance, string(abi.encodePacked("!PRICE ", Strings.toString(priceImpact))));
@@ -200,7 +200,14 @@ contract CurveSwapper is ControllableV3, ISwapper {
     if (success) {
       minter = abi.decode(returnData,(address));
     } else {
-      revert("The pool without minter");
+      (bool withFuncCoins, ) = minter.staticcall(
+        abi.encodeWithSignature("coins(uint256)", 0)
+      );
+      if(withFuncCoins) {
+        minter = pool;
+      } else {
+        revert("This pool is not a normal curve type");
+      }
     }
   }
 
