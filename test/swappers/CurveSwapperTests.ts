@@ -149,7 +149,7 @@ describe("CurveSwapperTests", function () {
     expect(price).approximately(1, 0.3);
   });
 
-  it("swap amUSDT to amUSDC and check int128 values", async () => {
+  it("swap amUSDT -> amUSDC in am3CRV and check int128 values", async () => {
     if(hre.network.config.chainId !== 137) {
       return;
     }
@@ -171,6 +171,58 @@ describe("CurveSwapperTests", function () {
     const afterBalance = +formatUnits(
         await IERC20__factory.connect(amUSDC,signer).balanceOf(signer.address)
     , 6);
+    console.log(afterBalance);
+    expect(afterBalance).approximately(1, 0.2);
+  });
+
+  it("swap USDR -> am3CRV in USDR_am3CRV", async () => {
+    if(hre.network.config.chainId !== 137) {
+      return;
+    }
+
+    const amount = parseUnits('1', 9);
+    const amUsdrHolder = await Misc.impersonate('0x76f49de0c05cb7e2d0a08a0d9d12907d508fa88d')
+    await IERC20__factory.connect(USDR, amUsdrHolder).transfer(swapper.address, amount)
+
+    const beforeBalance = await IERC20__factory.connect(am3CRV,signer).balanceOf(signer.address);
+    expect(beforeBalance).to.equal(BigNumber.from('0'));
+
+    await swapper.swap(
+        USDR_am3CRV,
+        USDR,
+        am3CRV,
+        signer.address,
+        10
+    );
+    const afterBalance = +formatUnits(
+        await IERC20__factory.connect(am3CRV,signer).balanceOf(signer.address)
+        , 18);
+    console.log(afterBalance);
+    expect(afterBalance).approximately(1, 0.2);
+  });
+
+  it("swap EURT -> am3CRV and check uint256 values", async () => {
+    if(hre.network.config.chainId !== 137) {
+      return;
+    }
+
+    const amount = parseUnits('1', 6);
+    const eURTHolder = await Misc.impersonate('0x50b3e08d5c3a2386e0c9585031b1152a5f0e2370')
+    await IERC20__factory.connect(EURT, eURTHolder).transfer(swapper.address, amount)
+
+    const beforeBalance = await IERC20__factory.connect(am3CRV,signer2).balanceOf(signer2.address);
+    expect(beforeBalance).to.equal(BigNumber.from('0'));
+
+    await swapper.swap(
+        EURT_am3CRV,
+        EURT,
+        am3CRV,
+        signer2.address,
+        50
+    );
+    const afterBalance = +formatUnits(
+        await IERC20__factory.connect(am3CRV,signer2).balanceOf(signer2.address)
+        , 18);
     console.log(afterBalance);
     expect(afterBalance).approximately(1, 0.2);
   });

@@ -96,23 +96,22 @@ contract CurveSwapper is ControllableV3, ISwapper {
     uint amountIn = IERC20(tokenIn).balanceOf(address(this));
 
     (uint256 tokenInIndex, uint256 tokenOutIndex) = getTokensIndex(curveMinter, tokenIn, tokenOut);
+    approveIfNeeded(tokenIn, amountIn, curveMinter);
 
-    // scope for checking price impact
-    uint256 priceBefore = getPrice(pool, tokenIn, tokenOut, amountIn);
+    _callExchange(curveMinter, tokenInIndex, tokenOutIndex, amountIn, _LIMIT);
 
-    require(IERC20(tokenIn).balanceOf(address(this)) >= amountIn, "Wrong amountIn");
-    IERC20(tokenIn).approve(curveMinter, amountIn);
+    uint256 fromPriceAmountOut = getPrice(pool, tokenIn, tokenOut, amountIn);
+    uint256 fromBalanceAmountOut = IERC20(tokenOut).balanceOf(address(this));
 
-    uint256 amountOut = _callExchange(curveMinter, tokenInIndex, tokenOutIndex, amountIn, _LIMIT);
-    require(IERC20(tokenOut).balanceOf(address(this)) >= amountOut, "Wrong amountOut");
-
-    uint256 priceAfter = getPrice(pool, tokenIn, tokenOut, amountIn);
-    require(priceAfter <= priceBefore, string(abi.encodePacked("Price increased ", Strings.toString(priceAfter-priceBefore))));
-
-    uint256 priceImpact = (priceBefore - priceAfter) * PRICE_IMPACT_DENOMINATOR / priceBefore;
+    uint256 priceImpact;
+    if (fromPriceAmountOut > fromBalanceAmountOut) {
+      priceImpact = (fromPriceAmountOut - fromBalanceAmountOut) * PRICE_IMPACT_DENOMINATOR / fromPriceAmountOut;
+    } else {
+      priceImpact = (fromBalanceAmountOut - fromPriceAmountOut) * PRICE_IMPACT_DENOMINATOR / fromBalanceAmountOut;
+    }
     require(priceImpact < priceImpactTolerance, string(abi.encodePacked("!PRICE ", Strings.toString(priceImpact))));
 
-    IERC20(tokenOut).safeTransfer(recipient, amountOut);
+    IERC20(tokenOut).safeTransfer(recipient, fromBalanceAmountOut);
 
     emit Swap(
       pool,
@@ -121,7 +120,7 @@ contract CurveSwapper is ControllableV3, ISwapper {
       recipient,
       priceImpactTolerance,
       amountIn,
-      amountOut
+      balanceAmountOut
     );
   }
 
@@ -141,14 +140,14 @@ contract CurveSwapper is ControllableV3, ISwapper {
     tokenInIndex = type(uint).max;
     tokenOutIndex = type(uint).max;
 
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; i = uncheckedInc(i)) {
       if (address(tokens[i]) == tokenIn) {
         tokenInIndex = i;
         break;
       }
     }
 
-    for (uint256 i = 0; i < len; i++) {
+    for (uint256 i = 0; i < len; i = uncheckedInc(i)) {
       if (address(tokens[i]) == tokenOut) {
         tokenOutIndex = i;
         break;
@@ -162,17 +161,17 @@ contract CurveSwapper is ControllableV3, ISwapper {
   function _getTokensFromMinter(address minter) private view returns(address[] memory) {
     address[] memory tempTokens = new address[](COINS_LENGTH_MAX);
     uint256 count = 0;
-    for (uint256 i = 0; i < COINS_LENGTH_MAX; i++) {
+    for (uint256 i = 0; i < COINS_LENGTH_MAX; i = uncheckedInc(i)) {
       address coin = _getCoin(minter, i);
       if (coin == address(0)) {
         break;
       }
       tempTokens[i] = coin;
-      count++;
+      count = uncheckedInc(count);
     }
 
     address[] memory foundTokens = new address[](count);
-    for (uint256 j = 0; j < count; j++) {
+    for (uint256 j = 0; j < count; j = uncheckedInc(j)) {
       foundTokens[j] = tempTokens[j];
     }
 
@@ -252,6 +251,20 @@ contract CurveSwapper is ControllableV3, ISwapper {
         )
       );
       amountOut = abi.decode(intReturnData,(uint256));
+    }
+  }
+
+  function approveIfNeeded(address token, uint amount, address spender) private {
+    if (IERC20(token).allowance(address(this), spender) < amount) {
+      IERC20(token).safeApprove(spender, 0);
+      // infinite approve, 2*255 is more gas efficient then type(uint).max
+      IERC20(token).safeApprove(spender, 2 ** 255);
+    }
+  }
+
+  function uncheckedInc(uint i) private pure returns (uint) {
+    unchecked {
+      return i + 1;
     }
   }
 }
