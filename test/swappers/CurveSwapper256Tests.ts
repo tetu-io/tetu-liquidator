@@ -4,7 +4,7 @@ import {expect} from "chai";
 import { BigNumber } from "ethers";
 import {
   Controller,
-  CurveSwapper,
+  CurveSwapper256,
   ICurveLpToken__factory, IERC20__factory,
   MockToken,
 } from "../../typechain";
@@ -15,13 +15,13 @@ import {Misc} from "../../scripts/utils/Misc";
 
 const hre = require("hardhat");
 
-describe("CurveSwapperTests", function () {
+describe("CurveSwapper256Tests", function () {
   let snapshotBefore: string;
   let snapshot: string;
   let signer: SignerWithAddress;
   let signer2: SignerWithAddress;
   let controller: Controller;
-  let swapper: CurveSwapper;
+  let swapper: CurveSwapper256;
   let wrongToken: MockToken;
 
   const usdDecimals = 6;
@@ -35,15 +35,12 @@ describe("CurveSwapperTests", function () {
   const EURT_am3CRV = '0x600743B1d8A96438bD46836fD34977a00293f6Aa';
   const EURT = '0x7BDF330f423Ea880FF95fC41A280fD5eCFD3D09f';
 
-  const USDR_am3CRV = '0xa138341185a9D0429B0021A11FB717B225e13e1F';
-  const USDR = '0xb5DFABd7fF7F83BAB83995E72A52B97ABb7bcf63';
-
   before(async function () {
     snapshotBefore = await TimeUtils.snapshot();
     [signer, signer2] = await ethers.getSigners();
     controller = await DeployerUtils.deployController(signer);
 
-    swapper = await DeployerUtils.deployCurveSwapper(signer, controller.address);
+    swapper = await DeployerUtils.deployCurveSwapper256(signer, controller.address);
 
     // token for testing wrong tokens
     wrongToken = await DeployerUtils.deployMockToken(signer, 'WTOKEN');
@@ -97,30 +94,6 @@ describe("CurveSwapperTests", function () {
     expect(indexes2.tokenOutIndex).to.equal(BigNumber.from('0'));
   });
 
-  it("from amUSDC to amDAI get price from 3CRV and check int128 values", async () => {
-    if(hre.network.config.chainId !== 137) {
-      return;
-    }
-
-    const price = +formatUnits(await swapper.getPrice(
-        am3CRV,
-        amUSDT,
-        amUSDC,
-        parseUnits('1', 6)
-    ), 6);
-    console.log(price);
-    expect(price).approximately(1, 0.2);
-
-    const price2 = +formatUnits(await swapper.getPrice(
-        am3CRV,
-        amUSDC,
-        amDAI,
-        oneUSD
-    ), 18)
-    console.log(price2);
-    expect(price2).approximately(1, 0.2)
-  });
-
   it("from EURT to am3CRV get price from EURT_am3CRV and check uint256 values", async () => {
     if(hre.network.config.chainId !== 137) {
       return;
@@ -133,72 +106,6 @@ describe("CurveSwapperTests", function () {
     ), 6)
     console.log(price);
     expect(price).approximately(1, 0.3);
-  });
-
-  it("from USDR to am3CRV get price from USDR_am3CRV and check not minter pool", async () => {
-    if(hre.network.config.chainId !== 137) {
-      return;
-    }
-    const price = +formatUnits(await swapper.getPrice(
-        USDR_am3CRV,
-        USDR,
-        am3CRV,
-        parseUnits('1', 9)
-    ), 18)
-    console.log(price);
-    expect(price).approximately(1, 0.3);
-  });
-
-  it("swap amUSDT -> amUSDC in am3CRV and check int128 values", async () => {
-    if(hre.network.config.chainId !== 137) {
-      return;
-    }
-
-    const amount = parseUnits('1', 6);
-    const amUsdtHolder = await Misc.impersonate('0x510d0e4def20c6bfd84f080bc424bac5c66941f4')
-    await IERC20__factory.connect(amUSDT, amUsdtHolder).transfer(swapper.address, amount)
-
-    const beforeBalance = await IERC20__factory.connect(amUSDC,signer).balanceOf(signer.address);
-    expect(beforeBalance).to.equal(BigNumber.from('0'));
-
-    await swapper.swap(
-        am3CRV,
-        amUSDT,
-        amUSDC,
-        signer.address,
-        10
-    );
-    const afterBalance = +formatUnits(
-        await IERC20__factory.connect(amUSDC,signer).balanceOf(signer.address)
-    , 6);
-    console.log(afterBalance);
-    expect(afterBalance).approximately(1, 0.2);
-  });
-
-  it("swap USDR -> am3CRV in USDR_am3CRV", async () => {
-    if(hre.network.config.chainId !== 137) {
-      return;
-    }
-
-    const amount = parseUnits('1', 9);
-    const amUsdrHolder = await Misc.impersonate('0x76f49de0c05cb7e2d0a08a0d9d12907d508fa88d')
-    await IERC20__factory.connect(USDR, amUsdrHolder).transfer(swapper.address, amount)
-
-    const beforeBalance = await IERC20__factory.connect(am3CRV,signer).balanceOf(signer.address);
-    expect(beforeBalance).to.equal(BigNumber.from('0'));
-
-    await swapper.swap(
-        USDR_am3CRV,
-        USDR,
-        am3CRV,
-        signer.address,
-        10
-    );
-    const afterBalance = +formatUnits(
-        await IERC20__factory.connect(am3CRV,signer).balanceOf(signer.address)
-        , 18);
-    console.log(afterBalance);
-    expect(afterBalance).approximately(1, 0.2);
   });
 
   it("swap EURT -> am3CRV and check uint256 values", async () => {

@@ -7,11 +7,12 @@ import "../openzeppelin/Strings.sol";
 import "../interfaces/IERC20.sol";
 import "../interfaces/ISwapper.sol";
 import "../interfaces/ICurveMinter.sol";
+import "../interfaces/ICurveLpToken.sol";
 import "../proxy/ControllableV3.sol";
 
-/// @title Swap tokens via Curve Pools.
+/// @title Implement basic functionality for Swap tokens via Curve Pools
 /// @author vpomo
-contract CurveSwapper is ControllableV3, ISwapper {
+abstract contract CurveSwapperBase is ControllableV3, ISwapper {
   using SafeERC20 for IERC20;
 
   // *************************************************************
@@ -19,11 +20,9 @@ contract CurveSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant CURVE_SWAPPER_VERSION = "1.0.0";
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
 
   uint public constant COINS_LENGTH_MAX = 5;
-
   uint private constant _LIMIT = 1;
 
   // *************************************************************
@@ -54,10 +53,6 @@ contract CurveSwapper is ControllableV3, ISwapper {
   function init(address controller_) external initializer {
     __Controllable_init(controller_);
   }
-
-  // *************************************************************
-  //                     GOV ACTIONS
-  // *************************************************************
 
   // *************************************************************
   //                        PRICE
@@ -93,25 +88,17 @@ contract CurveSwapper is ControllableV3, ISwapper {
     uint priceImpactTolerance
   ) external override {
     address curveMinter = _getMinter(pool);
-    uint amountIn = IERC20(tokenIn).balanceOf(address(this));
-
     (uint256 tokenInIndex, uint256 tokenOutIndex) = getTokensIndex(curveMinter, tokenIn, tokenOut);
+    uint amountIn = IERC20(tokenIn).balanceOf(address(this));
     _approveIfNeeded(tokenIn, amountIn, curveMinter);
 
+    uint256 priceBefore = _callGetDY(curveMinter, tokenInIndex, tokenOutIndex, amountIn);
     _callExchange(curveMinter, tokenInIndex, tokenOutIndex, amountIn, _LIMIT);
+    uint256 priceAfter = _callGetDY(curveMinter, tokenInIndex, tokenOutIndex, amountIn);
+    _checkPriceImpact(priceBefore, priceAfter, priceImpactTolerance);
 
-    uint256 priceAmountOut = getPrice(pool, tokenIn, tokenOut, amountIn);
-    uint256 balanceAmountOut = IERC20(tokenOut).balanceOf(address(this));
-
-    uint256 priceImpact;
-    if (priceAmountOut > balanceAmountOut) {
-      priceImpact = (priceAmountOut - balanceAmountOut) * PRICE_IMPACT_DENOMINATOR / priceAmountOut;
-    } else {
-      priceImpact = (balanceAmountOut - priceAmountOut) * PRICE_IMPACT_DENOMINATOR / balanceAmountOut;
-    }
-    require(priceImpact < priceImpactTolerance, string(abi.encodePacked("!PRICE ", Strings.toString(priceImpact))));
-
-    IERC20(tokenOut).safeTransfer(recipient, balanceAmountOut);
+    uint256 amountOut = IERC20(tokenOut).balanceOf(address(this));
+    IERC20(tokenOut).safeTransfer(recipient, amountOut);
 
     emit Swap(
       pool,
@@ -120,13 +107,9 @@ contract CurveSwapper is ControllableV3, ISwapper {
       recipient,
       priceImpactTolerance,
       amountIn,
-      balanceAmountOut
+      amountOut
     );
   }
-
-  // *************************************************************
-  //                        private functions
-  // *************************************************************
 
   function getTokensIndex(
     address minter,
@@ -158,7 +141,30 @@ contract CurveSwapper is ControllableV3, ISwapper {
     require(tokenOutIndex < len, 'Wrong tokenOut');
   }
 
-  function _getTokensFromMinter(address minter) private view returns(address[] memory) {
+  // *************************************************************
+  //                        internal functions
+  // *************************************************************
+
+  function _callGetDY(
+    address minter, uint256 tokenInIndex, uint256 tokenOutIndex, uint256 dx
+  ) internal virtual view returns (uint256 dy) {}
+
+  function _callExchange(
+    address minter, uint256 tokenInIndex, uint256 tokenOutIndex, uint256 dx, uint256 minDy
+  ) internal virtual returns (uint256 amountOut) {}
+
+  function _checkPriceImpact(uint256 priceBefore, uint256 priceAfter, uint256 priceImpactTolerance) internal pure {
+    uint256 priceImpact;
+    if (priceBefore > priceAfter) {
+      priceImpact = (priceBefore - priceAfter) * PRICE_IMPACT_DENOMINATOR / priceBefore;
+    } else {
+      priceImpact = (priceAfter - priceBefore) * PRICE_IMPACT_DENOMINATOR / priceAfter;
+    }
+
+    require(priceImpact < priceImpactTolerance, string(abi.encodePacked("!PRICE ", Strings.toString(priceImpact))));
+  }
+
+  function _getTokensFromMinter(address minter) internal view returns(address[] memory) {
     address[] memory tempTokens = new address[](COINS_LENGTH_MAX);
     uint256 count = 0;
     for (uint256 i = 0; i < COINS_LENGTH_MAX; i = _uncheckedInc(i)) {
@@ -178,83 +184,26 @@ contract CurveSwapper is ControllableV3, ISwapper {
     return foundTokens;
   }
 
-  function _getCoin(address minter, uint256 index) private view returns (address) {
+  function _getCoin(address minter, uint256 index) internal view returns (address) {
     try ICurveMinter(minter).coins{gas: 6000}(index) returns (address coin) {
       return coin;
     } catch {}
     return address(0);
   }
 
-  function _convertToInt(uint256 number) private pure returns (int128) {
-    require(number < COINS_LENGTH_MAX, "Wrong token index");
-    int128[5] memory intArr = [int128(0), int128(1), int128(2), int128(3), int128(4)];
-    return intArr[number];
-  }
-
-  function _getMinter(address pool) private view returns (address minter) {
-    (bool success, bytes memory returnData) = address(pool).staticcall(
-      abi.encodeWithSignature("minter()")
-    );
-
-    if (success) {
-      minter = abi.decode(returnData,(address));
-    } else {
-      (bool withFuncCoins, ) = minter.staticcall(
-        abi.encodeWithSignature("coins(uint256)", 0)
-      );
-      if(withFuncCoins) {
+  function _getMinter(address pool) internal view returns (address minter) {
+    try ICurveLpToken(pool).minter{gas: 30000}() returns (address result){
+      minter = result;
+    } catch {
+      try ICurveMinter(pool).coins{gas: 30000}(0) returns (address){
         minter = pool;
-      } else {
+      } catch {
         revert("This pool is not a normal curve type");
       }
     }
   }
 
-  function _callGetDY(
-    address minter, uint256 tokenInIndex, uint256 tokenOutIndex, uint256 dx
-  ) private view returns (uint256 dy) {
-
-    (bool uintSuccess, bytes memory uintReturnData) = minter.staticcall(
-      abi.encodeWithSignature("get_dy(uint256,uint256,uint256)",
-      tokenInIndex, tokenOutIndex, dx
-      )
-    );
-
-    if (uintSuccess) {
-      dy = abi.decode(uintReturnData,(uint256));
-    } else {
-      ( , bytes memory intReturnData) = minter.staticcall(
-        abi.encodeWithSignature("get_dy(int128,int128,uint256)",
-        _convertToInt(tokenInIndex), _convertToInt(tokenOutIndex), dx
-        )
-      );
-      dy = abi.decode(intReturnData,(uint256));
-    }
-  }
-
-  function _callExchange(
-    address minter, uint256 tokenInIndex, uint256 tokenOutIndex, uint256 dx, uint256 minDy
-  ) private returns (uint256 amountOut) {
-
-    (bool uintSuccess, bytes memory uintReturnData) = minter.call(
-      abi.encodeWithSignature("exchange(uint256,uint256,uint256,uint256)",
-      tokenInIndex, tokenOutIndex, dx, minDy
-      )
-    );
-
-    if (uintSuccess) {
-      amountOut = abi.decode(uintReturnData,(uint256));
-    } else {
-      ( , bytes memory intReturnData) = minter.call(
-        abi.encodeWithSignature("exchange(int128,int128,uint256,uint256)",
-        _convertToInt(tokenInIndex), _convertToInt(tokenOutIndex), dx, minDy
-        )
-      );
-      amountOut = abi.decode(intReturnData,(uint256));
-    }
-  }
-
-  function _approveIfNeeded(address token, uint amount, address spender) private {
+  function _approveIfNeeded(address token, uint amount, address spender) internal {
     if (IERC20(token).allowance(address(this), spender) < amount) {
       IERC20(token).safeApprove(spender, 0);
       // infinite approve, 2*255 is more gas efficient then type(uint).max
@@ -262,7 +211,7 @@ contract CurveSwapper is ControllableV3, ISwapper {
     }
   }
 
-  function _uncheckedInc(uint i) private pure returns (uint) {
+  function _uncheckedInc(uint i) internal pure returns (uint) {
     unchecked {
       return i + 1;
     }
