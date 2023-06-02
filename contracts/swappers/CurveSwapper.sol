@@ -19,7 +19,7 @@ contract CurveSwapper is ControllableV3, ISwapper {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant CURVE_SWAPPER_VERSION = "1.0.1";
+  string public constant CURVE_SWAPPER_VERSION = "1.0.0";
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
 
   uint public constant COINS_LENGTH_MAX = 5;
@@ -96,22 +96,22 @@ contract CurveSwapper is ControllableV3, ISwapper {
     uint amountIn = IERC20(tokenIn).balanceOf(address(this));
 
     (uint256 tokenInIndex, uint256 tokenOutIndex) = getTokensIndex(curveMinter, tokenIn, tokenOut);
-    approveIfNeeded(tokenIn, amountIn, curveMinter);
+    _approveIfNeeded(tokenIn, amountIn, curveMinter);
 
     _callExchange(curveMinter, tokenInIndex, tokenOutIndex, amountIn, _LIMIT);
 
-    uint256 fromPriceAmountOut = getPrice(pool, tokenIn, tokenOut, amountIn);
-    uint256 fromBalanceAmountOut = IERC20(tokenOut).balanceOf(address(this));
+    uint256 priceAmountOut = getPrice(pool, tokenIn, tokenOut, amountIn);
+    uint256 balanceAmountOut = IERC20(tokenOut).balanceOf(address(this));
 
     uint256 priceImpact;
-    if (fromPriceAmountOut > fromBalanceAmountOut) {
-      priceImpact = (fromPriceAmountOut - fromBalanceAmountOut) * PRICE_IMPACT_DENOMINATOR / fromPriceAmountOut;
+    if (priceAmountOut > balanceAmountOut) {
+      priceImpact = (priceAmountOut - balanceAmountOut) * PRICE_IMPACT_DENOMINATOR / priceAmountOut;
     } else {
-      priceImpact = (fromBalanceAmountOut - fromPriceAmountOut) * PRICE_IMPACT_DENOMINATOR / fromBalanceAmountOut;
+      priceImpact = (balanceAmountOut - priceAmountOut) * PRICE_IMPACT_DENOMINATOR / balanceAmountOut;
     }
     require(priceImpact < priceImpactTolerance, string(abi.encodePacked("!PRICE ", Strings.toString(priceImpact))));
 
-    IERC20(tokenOut).safeTransfer(recipient, fromBalanceAmountOut);
+    IERC20(tokenOut).safeTransfer(recipient, balanceAmountOut);
 
     emit Swap(
       pool,
@@ -140,14 +140,14 @@ contract CurveSwapper is ControllableV3, ISwapper {
     tokenInIndex = type(uint).max;
     tokenOutIndex = type(uint).max;
 
-    for (uint256 i = 0; i < len; i = uncheckedInc(i)) {
+    for (uint256 i = 0; i < len; i = _uncheckedInc(i)) {
       if (address(tokens[i]) == tokenIn) {
         tokenInIndex = i;
         break;
       }
     }
 
-    for (uint256 i = 0; i < len; i = uncheckedInc(i)) {
+    for (uint256 i = 0; i < len; i = _uncheckedInc(i)) {
       if (address(tokens[i]) == tokenOut) {
         tokenOutIndex = i;
         break;
@@ -161,17 +161,17 @@ contract CurveSwapper is ControllableV3, ISwapper {
   function _getTokensFromMinter(address minter) private view returns(address[] memory) {
     address[] memory tempTokens = new address[](COINS_LENGTH_MAX);
     uint256 count = 0;
-    for (uint256 i = 0; i < COINS_LENGTH_MAX; i = uncheckedInc(i)) {
+    for (uint256 i = 0; i < COINS_LENGTH_MAX; i = _uncheckedInc(i)) {
       address coin = _getCoin(minter, i);
       if (coin == address(0)) {
         break;
       }
       tempTokens[i] = coin;
-      count = uncheckedInc(count);
+      count = _uncheckedInc(count);
     }
 
     address[] memory foundTokens = new address[](count);
-    for (uint256 j = 0; j < count; j = uncheckedInc(j)) {
+    for (uint256 j = 0; j < count; j = _uncheckedInc(j)) {
       foundTokens[j] = tempTokens[j];
     }
 
@@ -254,7 +254,7 @@ contract CurveSwapper is ControllableV3, ISwapper {
     }
   }
 
-  function approveIfNeeded(address token, uint amount, address spender) private {
+  function _approveIfNeeded(address token, uint amount, address spender) private {
     if (IERC20(token).allowance(address(this), spender) < amount) {
       IERC20(token).safeApprove(spender, 0);
       // infinite approve, 2*255 is more gas efficient then type(uint).max
@@ -262,7 +262,7 @@ contract CurveSwapper is ControllableV3, ISwapper {
     }
   }
 
-  function uncheckedInc(uint i) private pure returns (uint) {
+  function _uncheckedInc(uint i) private pure returns (uint) {
     unchecked {
       return i + 1;
     }
