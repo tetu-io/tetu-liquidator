@@ -90,6 +90,7 @@ abstract contract CurveSwapperBase is ControllableV3, ISwapper {
     address curveMinter = _getMinter(pool);
     (uint256 tokenInIndex, uint256 tokenOutIndex) = getTokensIndex(curveMinter, tokenIn, tokenOut);
     uint amountIn = IERC20(tokenIn).balanceOf(address(this));
+    require(amountIn > 0, 'Wrong amountIn');
     _approveIfNeeded(tokenIn, amountIn, curveMinter);
 
     uint256 priceBefore = _callGetDY(curveMinter, tokenInIndex, tokenOutIndex, amountIn);
