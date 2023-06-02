@@ -31,7 +31,6 @@ contract CurveSwapper128 is CurveSwapperBase {
 
   function _convertToInt(uint256 number) internal pure returns (int128) {
     require(number < COINS_LENGTH_MAX, "Wrong token index");
-    int128[5] memory intArr = [int128(0), int128(1), int128(2), int128(3), int128(4)];
-    return intArr[number];
+    return int128(int(number));
   }
 }
