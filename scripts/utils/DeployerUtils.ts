@@ -10,6 +10,8 @@ import {
   DystFactory,
   DystopiaSwapper,
   DystopiaSwapper__factory,
+  CurveSwapper128__factory,
+  CurveSwapper256__factory,
   MockToken,
   ProxyControlled,
   TetuLiquidator__factory,
@@ -115,6 +117,20 @@ export class DeployerUtils {
       factory,
       netToken
     }
+  }
+
+  public static async deployCurveSwapper128(signer: SignerWithAddress, controller: string) {
+    const proxy = await DeployerUtils.deployProxy(signer, 'CurveSwapper128')
+    const swapper = CurveSwapper128__factory.connect(proxy, signer);
+    await RunHelper.runAndWait(() => swapper.init(controller, {gasLimit: 8_000_000}))
+    return swapper;
+  }
+
+  public static async deployCurveSwapper256(signer: SignerWithAddress, controller: string) {
+    const proxy = await DeployerUtils.deployProxy(signer, 'CurveSwapper256')
+    const swapper = CurveSwapper256__factory.connect(proxy, signer);
+    await RunHelper.runAndWait(() => swapper.init(controller, {gasLimit: 8_000_000}))
+    return swapper;
   }
 
   public static async deployBalancer(
