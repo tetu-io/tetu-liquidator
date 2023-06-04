@@ -19,9 +19,9 @@ const META: {
   swapper: string,
 }[] = [
   {
-    tokenIn: '0x6DEA81C8171D0bA574754EF6F8b412F2Ed88c54D',
+    tokenIn: '0xf951E335afb289353dc249e82926178EaC7DEd78',
     tokenOut: EthAddresses.WETH_TOKEN,
-    pool: '0xD1D5A4c0eA98971894772Dcd6D2f1dc71083C44E',
+    pool: '0x30eA22C879628514f1494d4BBFEF79D21A6B49A2',
     swapper: UNI3_SWAPPER,
   },
 ]
