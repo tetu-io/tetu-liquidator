@@ -47,10 +47,10 @@ describe("BalancerWeightedPoolSwapperTests", function () {
     weightedPool = await DeployerUtils.deployAndInitBalancerWeightedPool(
       signer,
       vault.address,
-      [usdc, bal],
-      [parseUnits('0.2'), parseUnits('0.8')],
+      [bal, usdc,],
+      [parseUnits('0.8'), parseUnits('0.2')],
       // Initially 1USDC = 100BAL
-      [parseUnits('200000', usdDecimals), parseUnits('80000000')]
+      [parseUnits('80000000'), parseUnits('200000', usdDecimals)]
     );
 
     matic = await DeployerUtils.deployMockToken(signer, 'WMATIC');
