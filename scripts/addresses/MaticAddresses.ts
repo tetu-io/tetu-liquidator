@@ -249,6 +249,12 @@ export class MaticAddresses {
   public static MARKET_POOLDIRECTORY = '0xA2a1cb88D86A939A37770FE5E9530E8700DEe56b'.toLowerCase();
   public static MARKET_POOLLENS = '0xe4D84b252308645098846312286E6c6D2846DbB0'.toLowerCase();
 
+  // ALGEBRA
+  public static ALGEBRA_USDC_USDT = '0x7b925e617aefd7fb3a93abe3a701135d7a1ba710'.toLowerCase()
+
+  // HOLDERS
+  public static HOLDER_USDC = "0x06959153b974d0d5fdfd87d561db6d8d4fa0bb0b".toLowerCase();
+
   public static BLUE_CHIPS = new Set<string>([
     MaticAddresses.USDC_TOKEN,
     MaticAddresses.USDT_TOKEN,
