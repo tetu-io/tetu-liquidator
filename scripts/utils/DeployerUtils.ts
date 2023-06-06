@@ -19,7 +19,7 @@ import {
   Vault,
   Vault__factory,
   WeightedPool,
-  StablePool, Uni3Swapper__factory, BalancerComposableStablePoolSwapper__factory
+  StablePool, Uni3Swapper__factory, BalancerComposableStablePoolSwapper__factory, AlgebraSwapper__factory
 } from "../../typechain";
 import {RunHelper} from "./RunHelper";
 import {deployContract} from "../deploy/DeployContract";
@@ -78,6 +78,13 @@ export class DeployerUtils {
   public static async deployUni3Swapper(signer: SignerWithAddress, controller: string) {
     const proxy = await DeployerUtils.deployProxy(signer, 'Uni3Swapper')
     const swapper = Uni3Swapper__factory.connect(proxy, signer);
+    await RunHelper.runAndWait(() => swapper.init(controller, {gasLimit: 8_000_000}))
+    return swapper;
+  }
+
+  public static async deployAlgebraSwapper(signer: SignerWithAddress, controller: string) {
+    const proxy = await DeployerUtils.deployProxy(signer, 'AlgebraSwapper')
+    const swapper = AlgebraSwapper__factory.connect(proxy, signer);
     await RunHelper.runAndWait(() => swapper.init(controller, {gasLimit: 8_000_000}))
     return swapper;
   }
