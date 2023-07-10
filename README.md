@@ -31,6 +31,7 @@ This solution is able to liquidate token to another token with strict predefined
 | CurveSwapper256                 | [0xa22b4156bc8FB94CD4B2398aB28D7194223D54aA](https://polygonscan.com/address/0xa22b4156bc8FB94CD4B2398aB28D7194223D54aA#readProxyContract) |
 | AlgebraSwapper                  | [0x1d2A0025e7782f640E34Ca5aCCB14e0Ebb96B2f8](https://polygonscan.com/address/0x1d2A0025e7782f640E34Ca5aCCB14e0Ebb96B2f8#readProxyContract) |
 | KyberSwapper                    | [0xE1d65E844E41cE02e1d327336446eE6B6630526f](https://polygonscan.com/address/0xE1d65E844E41cE02e1d327336446eE6B6630526f#readProxyContract) |
+| BalancerLinearSwapper           | [0xa448329A95970194567fCa4B6B1B0bbA4aC0bF66](https://polygonscan.com/address/0xa448329A95970194567fCa4B6B1B0bbA4aC0bF66#readProxyContract) |
 
 ## BSC addresses
 

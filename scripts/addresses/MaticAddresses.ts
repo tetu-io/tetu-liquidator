@@ -256,6 +256,9 @@ export class MaticAddresses {
   public static KYBER_USDC_USDT = '0x879664ce5A919727b3Ed4035Cf12F7F740E8dF00'.toLowerCase()
   public static KYBER_WBTC_WETH = '0x4ebc4d2763e951197f07b6b8b3c2bdfbff7d6b5f'.toLowerCase()
 
+  // TETU
+  public static TETU_TUSDC = '0x113f3D54C31EBC71510FD664c8303B34fBc2B355'.toLowerCase()
+
   // HOLDERS
   public static HOLDER_USDC = "0x06959153b974d0d5fdfd87d561db6d8d4fa0bb0b".toLowerCase();
   public static HOLDER_WBTC = "0x5c2ed810328349100A66B82b78a1791B101C9D61".toLowerCase();
