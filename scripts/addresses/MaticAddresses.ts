@@ -76,6 +76,8 @@ export class MaticAddresses {
   public static DF_TOKEN = '0x08C15FA26E519A78a666D19CE5C646D55047e0a3'.toLowerCase();
   public static wstETH_TOKEN = '0x03b54A6e9a984069379fae1a4fC4dBAE93B3bCCD'.toLowerCase();
   public static maticX = '0xfa68FB4628DFF1028CFEc22b4162FCcd0d45efb6'.toLowerCase();
+  public static CAVIAR_TOKEN = '0x6AE96Cc93331c19148541D4D2f31363684917092'.toLowerCase();
+  public static PEARL_TOKEN = '0x7238390d5f6F64e67c3211C343A410E2A3DEc142'.toLowerCase();
 
   // iron
   public static IRON_MINISHEFV2 = "0x1fD1259Fa8CdC60c6E8C86cfA592CA1b8403DFaD".toLowerCase();
@@ -256,6 +258,9 @@ export class MaticAddresses {
   public static KYBER_USDC_USDT = '0x879664ce5A919727b3Ed4035Cf12F7F740E8dF00'.toLowerCase()
   public static KYBER_WBTC_WETH = '0x4ebc4d2763e951197f07b6b8b3c2bdfbff7d6b5f'.toLowerCase()
 
+  // PEARL
+  public static PEARL_CVR_PEARL = '0x700D6E1167472bDc312D9cBBdc7c58C7f4F45120'.toLowerCase()
+
   // TETU
   public static TETU_TUSDC = '0x113f3D54C31EBC71510FD664c8303B34fBc2B355'.toLowerCase()
 
@@ -263,6 +268,7 @@ export class MaticAddresses {
   public static HOLDER_USDC = "0x06959153b974d0d5fdfd87d561db6d8d4fa0bb0b".toLowerCase();
   public static HOLDER_WBTC = "0x5c2ed810328349100A66B82b78a1791B101C9D61".toLowerCase();
   public static HOLDER_dQUICK = "0x043f8524f87efb25990b65ff4918f9128acf742e".toLowerCase();
+  public static HOLDER_CAVIAR = "0x6a09eb9b5932a79360b02161125ecdf028dbc6d7".toLowerCase();
 
   public static BLUE_CHIPS = new Set<string>([
     MaticAddresses.USDC_TOKEN,

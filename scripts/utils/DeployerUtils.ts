@@ -23,7 +23,7 @@ import {
   Uni3Swapper__factory,
   BalancerComposableStablePoolSwapper__factory,
   AlgebraSwapper__factory,
-  KyberSwapper__factory, BalancerLinearPoolSwapper__factory
+  KyberSwapper__factory, BalancerLinearPoolSwapper__factory, PearlSwapper__factory
 } from "../../typechain";
 import {RunHelper} from "./RunHelper";
 import {deployContract} from "../deploy/DeployContract";
@@ -103,6 +103,12 @@ export class DeployerUtils {
   public static async deployDystopiaSwapper(signer: SignerWithAddress, controller: string) {
     const proxy = await DeployerUtils.deployProxy(signer, 'DystopiaSwapper')
     const swapper = DystopiaSwapper__factory.connect(proxy, signer);
+    await RunHelper.runAndWait(() => swapper.init(controller, {gasLimit: 8_000_000}))
+    return swapper;
+  }
+  public static async deployPearlSwapper(signer: SignerWithAddress, controller: string) {
+    const proxy = await DeployerUtils.deployProxy(signer, 'PearlSwapper')
+    const swapper = PearlSwapper__factory.connect(proxy, signer);
     await RunHelper.runAndWait(() => swapper.init(controller, {gasLimit: 8_000_000}))
     return swapper;
   }
