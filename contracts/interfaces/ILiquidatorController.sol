@@ -8,5 +8,6 @@ interface ILiquidatorController {
 
   function isOperator(address _adr) external view returns (bool);
 
+  function changeOperatorStatus(address operator, bool status) external;
 
 }

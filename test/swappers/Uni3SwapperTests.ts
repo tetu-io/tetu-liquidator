@@ -79,6 +79,27 @@ describe("Uni3SwapperTests", function () {
     // expect(balAfter.sub(bal)).above(parseUnits('4700', 6));
   });
 
+  it("swap weth to btcb", async () => {
+    if(hre.network.config.chainId !== 56) {
+      return;
+    }
+    const ethHolder = await Misc.impersonate('0x5a52E96BAcdaBb82fd05763E25335261B270Efcb')
+    const WETH = '0x2170ed0880ac9a755fd29b2688956bd959f933f8';
+    const BTCB = '0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c';
+    const POOL = '0xD4dCA84E1808da3354924cD243c66828cf775470'
+
+    await IERC20__factory.connect(WETH, ethHolder).transfer(swapper.address, parseUnits('1000'))
+    await swapper.swap(
+      POOL,
+      WETH,
+      BTCB,
+      signer.address,
+      6_000,
+      {gasLimit: 10_000_000}
+    );
+
+  });
+
   it("swap lido to usdc", async () => {
     if(hre.network.config.chainId !== 137) {
       return;

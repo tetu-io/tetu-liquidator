@@ -6,8 +6,9 @@ This solution is able to liquidate token to another token with strict predefined
 
 ## Mainnet addresses
 
+
 | Name                    | Address                                                                                                                                 |
-|-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | Controller              | [0x053bEc42CA1Cb2E58E27097E5EC3FDf3B7BEc767](https://etherscan.io/address/0x053bEc42CA1Cb2E58E27097E5EC3FDf3B7BEc767#readProxyContract) |
 | Liquidator              | [0x90351d15F036289BE9b1fd4Cb0e2EeC63a9fF9b0](https://etherscan.io/address/0x90351d15F036289BE9b1fd4Cb0e2EeC63a9fF9b0#readProxyContract) |
 | UniV2Swapper            | [0x96cee247B587c19D5570dae254d57958e92D75f0](https://etherscan.io/address/0x96cee247B587c19D5570dae254d57958e92D75f0#readProxyContract) |
@@ -40,6 +41,7 @@ This solution is able to liquidate token to another token with strict predefined
 | Controller      | [0x849ecF35f711fFE183838DFdaaDFe105D4C0662a](https://bscscan.com/address/0x849ecF35f711fFE183838DFdaaDFe105D4C0662a#readProxyContract) |
 | Liquidator      | [0xcE9F7173420b41678320cd4BB93517382b6D48e8](https://bscscan.com/address/0xcE9F7173420b41678320cd4BB93517382b6D48e8#readProxyContract) |
 | UniV2Swapper    | [0xD37fC11dEDfaa0fc3449b2BF5eDe864Ef6AaE1E3](https://bscscan.com/address/0xD37fC11dEDfaa0fc3449b2BF5eDe864Ef6AaE1E3#readProxyContract) |
+| UniV3Swapper    | [0x7772E6FFa158a13205b63Fe1abE921F4bDD54a3d](https://bscscan.com/address/0x7772E6FFa158a13205b63Fe1abE921F4bDD54a3d#readProxyContract) |
 | DystopiaSwapper | [0xECc1B6f004d4A04017a6eDc1A02f222f4ea7cad2](https://bscscan.com/address/0xECc1B6f004d4A04017a6eDc1A02f222f4ea7cad2#readProxyContract) |
 
 ## Links
