@@ -36,13 +36,13 @@ This solution is able to liquidate token to another token with strict predefined
 
 ## BSC addresses
 
-| Name            | Address                                                                                                                                |
-|-----------------|----------------------------------------------------------------------------------------------------------------------------------------|
-| Controller      | [0x849ecF35f711fFE183838DFdaaDFe105D4C0662a](https://bscscan.com/address/0x849ecF35f711fFE183838DFdaaDFe105D4C0662a#readProxyContract) |
-| Liquidator      | [0xcE9F7173420b41678320cd4BB93517382b6D48e8](https://bscscan.com/address/0xcE9F7173420b41678320cd4BB93517382b6D48e8#readProxyContract) |
-| UniV2Swapper    | [0xD37fC11dEDfaa0fc3449b2BF5eDe864Ef6AaE1E3](https://bscscan.com/address/0xD37fC11dEDfaa0fc3449b2BF5eDe864Ef6AaE1E3#readProxyContract) |
-| UniV3Swapper    | [0x7772E6FFa158a13205b63Fe1abE921F4bDD54a3d](https://bscscan.com/address/0x7772E6FFa158a13205b63Fe1abE921F4bDD54a3d#readProxyContract) |
-| DystopiaSwapper | [0xECc1B6f004d4A04017a6eDc1A02f222f4ea7cad2](https://bscscan.com/address/0xECc1B6f004d4A04017a6eDc1A02f222f4ea7cad2#readProxyContract) |
+| Name             | Address                                                                                                                                |
+|------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| Controller       | [0x849ecF35f711fFE183838DFdaaDFe105D4C0662a](https://bscscan.com/address/0x849ecF35f711fFE183838DFdaaDFe105D4C0662a#readProxyContract) |
+| Liquidator       | [0xcE9F7173420b41678320cd4BB93517382b6D48e8](https://bscscan.com/address/0xcE9F7173420b41678320cd4BB93517382b6D48e8#readProxyContract) |
+| UniV2Swapper     | [0xD37fC11dEDfaa0fc3449b2BF5eDe864Ef6AaE1E3](https://bscscan.com/address/0xD37fC11dEDfaa0fc3449b2BF5eDe864Ef6AaE1E3#readProxyContract) |
+| PancakeV3Swapper | [0x5413E7AFCADCB63A30Dad567f46dd146Cc427801](https://bscscan.com/address/0x5413E7AFCADCB63A30Dad567f46dd146Cc427801#readProxyContract) |
+| DystopiaSwapper  | [0xECc1B6f004d4A04017a6eDc1A02f222f4ea7cad2](https://bscscan.com/address/0xECc1B6f004d4A04017a6eDc1A02f222f4ea7cad2#readProxyContract) |
 
 ## Links
 
