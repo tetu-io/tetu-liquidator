@@ -44,6 +44,15 @@ This solution is able to liquidate token to another token with strict predefined
 | PancakeV3Swapper | [0x5413E7AFCADCB63A30Dad567f46dd146Cc427801](https://bscscan.com/address/0x5413E7AFCADCB63A30Dad567f46dd146Cc427801#readProxyContract) |
 | DystopiaSwapper  | [0xECc1B6f004d4A04017a6eDc1A02f222f4ea7cad2](https://bscscan.com/address/0xECc1B6f004d4A04017a6eDc1A02f222f4ea7cad2#readProxyContract) |
 
+## BASE addresses
+
+| Name         | Address                                                                                                                                |
+|--------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| Controller   | [0x0EFc2D2D054383462F2cD72eA2526Ef7687E1016](https://basescan.org//address/0x0EFc2D2D054383462F2cD72eA2526Ef7687E1016#readProxyContract) |
+| Liquidator   | [0x22e2625F9d8c28CB4BcE944E9d64efb4388ea991](https://basescan.org//address/0x22e2625F9d8c28CB4BcE944E9d64efb4388ea991#readProxyContract) |
+| UniV2Swapper | [0x286c02C93f3CF48BB759A93756779A1C78bCF833](https://basescan.org//address/0x286c02C93f3CF48BB759A93756779A1C78bCF833#readProxyContract) |
+| UniV3Swapper | [0x0A0846c978a56D6ea9D2602eeb8f977B21F3207F](https://basescan.org//address/0x0A0846c978a56D6ea9D2602eeb8f977B21F3207F#readProxyContract) |
+
 ## Links
 
 Web: https://tetu.io/

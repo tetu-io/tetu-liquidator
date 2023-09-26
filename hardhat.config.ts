@@ -55,6 +55,9 @@ const argv = require('yargs/yargs')()
     networkScanKeyBsc: {
       type: "string",
     },
+    networkScanKeyBase: {
+      type: "string",
+    },
     privateKey: {
       type: "string",
       default: "85bb5fa78d5c4ed1fde856e9d0d1fe19973d7a79ce9ed6c0358ee06a4550504e" // random account
@@ -86,6 +89,9 @@ const argv = require('yargs/yargs')()
     bscRpcUrl: {
       type: "string",
       default: 'https://bsc-dataseed.binance.org/'
+    },
+    baseRpcUrl: {
+      type: "string",
     },
     bscForkBlock: {
       type: "number",
@@ -198,6 +204,12 @@ export default {
       // gas: 50_000_000_000,
       accounts: [argv.privateKey],
     },
+    base: {
+      url: argv.baseRpcUrl || '',
+      chainId: 8453,
+      // gas: 50_000_000_000,
+      accounts: [argv.privateKey],
+    },
   },
   etherscan: {
     //  https://hardhat.org/plugins/nomiclabs-hardhat-etherscan.html#multiple-api-keys-and-alternative-block-explorers
@@ -210,7 +222,18 @@ export default {
       arbitrumTestnet: argv.networkScanKeyArbitrum || argv.networkScanKey,
       avalancheFujiTestnet: argv.networkScanKeyAvalanche || argv.networkScanKey,
       bsc: argv.networkScanKeyBsc || argv.networkScanKey,
+      base: argv.networkScanKeyBase,
     },
+    customChains: [
+      {
+        network: "base",
+        chainId: 8453,
+        urls: {
+          apiURL: "https://api.basescan.org/api",
+          browserURL: "https://basescan.org"
+        }
+      }
+    ]
   },
   solidity: {
     compilers: [

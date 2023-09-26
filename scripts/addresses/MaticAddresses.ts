@@ -76,6 +76,10 @@ export class MaticAddresses {
   public static DF_TOKEN = '0x08C15FA26E519A78a666D19CE5C646D55047e0a3'.toLowerCase();
   public static wstETH_TOKEN = '0x03b54A6e9a984069379fae1a4fC4dBAE93B3bCCD'.toLowerCase();
   public static maticX = '0xfa68FB4628DFF1028CFEc22b4162FCcd0d45efb6'.toLowerCase();
+  public static CAVIAR_TOKEN = '0x6AE96Cc93331c19148541D4D2f31363684917092'.toLowerCase();
+  public static PEARL_TOKEN = '0x7238390d5f6F64e67c3211C343A410E2A3DEc142'.toLowerCase();
+  public static USDR_TOKEN = '0x40379a439d4f6795b6fc9aa5687db461677a2dba'.toLowerCase();
+  public static wUSDR_TOKEN = '0x00e8c0E92eB3Ad88189E7125Ec8825eDc03Ab265'.toLowerCase();
 
   // iron
   public static IRON_MINISHEFV2 = "0x1fD1259Fa8CdC60c6E8C86cfA592CA1b8403DFaD".toLowerCase();
@@ -161,6 +165,12 @@ export class MaticAddresses {
   public static CURVE_aTricrypto3_POOL = "0x1d8b86e3d88cdb2d34688e87e72f388cb541b7c8".toLocaleLowerCase();
   public static CURVE_AAVE_GAGUE = "0x19793B454D3AfC7b454F206Ffe95aDE26cA6912c".toLocaleLowerCase();
   public static CURVE_renBTC_GAGUE = "0xffbACcE0CC7C19d46132f1258FC16CF6871D153c".toLocaleLowerCase();
+
+  // Pearl
+  public static PEARL_CVR_PEARL_POOL = '0x700D6E1167472bDc312D9cBBdc7c58C7f4F45120'.toLowerCase()
+  public static PEARL_PEARL_USDR_POOL = '0xf68c20d6C50706f6C6bd8eE184382518C93B368c'.toLowerCase()
+  public static PEARL_USDC_USDR_POOL = '0xD17cb0f162f133e339C0BbFc18c36c357E681D6b'.toLowerCase()
+  public static PEARL_wUSDR_USDR_POOL = '0x8711a1a52c34EDe8E61eF40496ab2618a8F6EA4B'.toLowerCase()
 
   // HERMES
   /*

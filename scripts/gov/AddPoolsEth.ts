@@ -19,9 +19,9 @@ const META: {
   swapper: string,
 }[] = [
   {
-    tokenIn: '0xf951E335afb289353dc249e82926178EaC7DEd78',
+    tokenIn: '0x8290333ceF9e6D528dD5618Fb97a76f268f3EDD4',
     tokenOut: EthAddresses.WETH_TOKEN,
-    pool: '0x30eA22C879628514f1494d4BBFEF79D21A6B49A2',
+    pool: '0x13dC0a39dc00F394E030B97b0B569dedBe634c0d',
     swapper: UNI3_SWAPPER,
   },
 ]
@@ -64,7 +64,7 @@ async function main() {
     );
   }
 
-  await RunHelper.runAndWait(() => liquidator.addLargestPools(pools, false));
+  await RunHelper.runAndWait(() => liquidator.addLargestPools(pools, true));
 }
 
 
