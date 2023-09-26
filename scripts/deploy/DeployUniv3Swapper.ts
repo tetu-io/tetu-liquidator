@@ -2,7 +2,7 @@ import {ethers} from "hardhat";
 import {DeployerUtils} from "../utils/DeployerUtils";
 import {writeFileSync} from "fs";
 
-const CONTROLLER = '0x053bEc42CA1Cb2E58E27097E5EC3FDf3B7BEc767'
+const CONTROLLER = '0x0EFc2D2D054383462F2cD72eA2526Ef7687E1016'
 
 async function main() {
   const signer = (await ethers.getSigners())[0];
