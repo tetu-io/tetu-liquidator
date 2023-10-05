@@ -6,9 +6,8 @@ This solution is able to liquidate token to another token with strict predefined
 
 ## Mainnet addresses
 
-
 | Name                    | Address                                                                                                                                 |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+|-------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
 | Controller              | [0x053bEc42CA1Cb2E58E27097E5EC3FDf3B7BEc767](https://etherscan.io/address/0x053bEc42CA1Cb2E58E27097E5EC3FDf3B7BEc767#readProxyContract) |
 | Liquidator              | [0x90351d15F036289BE9b1fd4Cb0e2EeC63a9fF9b0](https://etherscan.io/address/0x90351d15F036289BE9b1fd4Cb0e2EeC63a9fF9b0#readProxyContract) |
 | UniV2Swapper            | [0x96cee247B587c19D5570dae254d57958e92D75f0](https://etherscan.io/address/0x96cee247B587c19D5570dae254d57958e92D75f0#readProxyContract) |
@@ -46,12 +45,14 @@ This solution is able to liquidate token to another token with strict predefined
 
 ## BASE addresses
 
-| Name         | Address                                                                                                                                |
-|--------------|----------------------------------------------------------------------------------------------------------------------------------------|
-| Controller   | [0x0EFc2D2D054383462F2cD72eA2526Ef7687E1016](https://basescan.org//address/0x0EFc2D2D054383462F2cD72eA2526Ef7687E1016#readProxyContract) |
-| Liquidator   | [0x22e2625F9d8c28CB4BcE944E9d64efb4388ea991](https://basescan.org//address/0x22e2625F9d8c28CB4BcE944E9d64efb4388ea991#readProxyContract) |
-| UniV2Swapper | [0x286c02C93f3CF48BB759A93756779A1C78bCF833](https://basescan.org//address/0x286c02C93f3CF48BB759A93756779A1C78bCF833#readProxyContract) |
-| UniV3Swapper | [0x00379dD90b2A337C4652E286e4FBceadef940a21](https://basescan.org//address/0x00379dD90b2A337C4652E286e4FBceadef940a21#readProxyContract) |
+| Name            | Address                                                                                                                                  |
+|-----------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| Controller      | [0x0EFc2D2D054383462F2cD72eA2526Ef7687E1016](https://basescan.org//address/0x0EFc2D2D054383462F2cD72eA2526Ef7687E1016#readProxyContract) |
+| Liquidator      | [0x22e2625F9d8c28CB4BcE944E9d64efb4388ea991](https://basescan.org//address/0x22e2625F9d8c28CB4BcE944E9d64efb4388ea991#readProxyContract) |
+| UniV2Swapper    | [0x286c02C93f3CF48BB759A93756779A1C78bCF833](https://basescan.org//address/0x286c02C93f3CF48BB759A93756779A1C78bCF833#readProxyContract) |
+| UniV3Swapper    | [0x00379dD90b2A337C4652E286e4FBceadef940a21](https://basescan.org//address/0x00379dD90b2A337C4652E286e4FBceadef940a21#readProxyContract) |
+| CurveSwapper256 | [0x57205cC741f8787a5195B2126607ac505E11B650](https://basescan.org//address/0x57205cC741f8787a5195B2126607ac505E11B650#readProxyContract) |
+| CurveSwapper128 | [0x03fD3aE2758aB37E8692e1844e0692e9B058C735](https://basescan.org//address/0x03fD3aE2758aB37E8692e1844e0692e9B058C735#readProxyContract) |
 
 ## Links
 

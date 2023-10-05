@@ -1,11 +1,10 @@
 import {ethers} from "hardhat";
 import {DeployerUtils} from "../utils/DeployerUtils";
-
-const CONTROLLER = '0x943c56C23992b16B3D95B0C481D8fb7727e31ea8'
+import {Misc} from "../utils/Misc";
 
 async function main() {
   const signer = (await ethers.getSigners())[0];
-  const swapper = await DeployerUtils.deployKyberSwapper(signer, CONTROLLER);
+  const swapper = await DeployerUtils.deployKyberSwapper(signer, Misc.getController());
   const data = `
   swapper: ${swapper.address}
   `
