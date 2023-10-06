@@ -4,8 +4,6 @@
 
 export class BaseAddresses {
 
-  // useful places where you can find addresses
-  // https://github.com/sushiswap/default-token-list/blob/master/src/tokens/matic.json#L153
 
   public static ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
   public static GOV_ADDRESS = '0xccccA67ff07be12db2aAaF0c59CeD3BbB222F883'.toLowerCase(); // todo change
@@ -28,23 +26,24 @@ export class BaseAddresses {
 
   // tokens
   public static WETH_TOKEN = '0x4200000000000000000000000000000000000006'.toLowerCase();
+
   public static USDC_TOKEN = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'.toLowerCase();
   public static USDbC_TOKEN = '0xd9aAEc86B65D86f6A7B5B1b0c42FFA531710b6CA'.toLowerCase();
   public static axlUSDC_TOKEN = '0xEB466342C4d449BC9f53A865D5Cb90586f405215'.toLowerCase();
-  // public static USDT_TOKEN = ''.toLowerCase();
-  // public static WBTC_TOKEN = ''.toLowerCase();
-  // public static DAI_TOKEN = ''.toLowerCase();
-  // public static CRV_TOKEN = ''.toLowerCase();
   public static crvUSD_TOKEN = '0x417Ac0e078398C154EdFadD9Ef675d30Be60Af93'.toLowerCase();
+  public static USDT_TOKEN = ''.toLowerCase();
+
+  public static WBTC_TOKEN = ''.toLowerCase();
+  public static DAI_TOKEN = ''.toLowerCase();
+  public static CRV_TOKEN = '0x8Ee73c484A26e0A5df2Ee2a4960B789967dd0415'.toLowerCase();
 
   // curve
   public static CURVE_CB_ETH_ETH_LP_TOKEN = '0x98244d93D42b42aB3E3A4D12A5dc0B3e7f8F32f9'.toLowerCase();
   public static CURVE_CB_ETH_ETH_GAUGE = '0xE9c898BA654deC2bA440392028D2e7A194E6dc3e'.toLowerCase();
   public static CURVE_4POOL_POOL = '0xf6C5F01C7F3148891ad0e19DF78743D31E390D1f'.toLowerCase();
+  public static CURVE_4POOL_GAUGE = '0x79edc58c471acf2244b8f93d6f425fd06a439407'.toLowerCase();
+  public static CURVE_CRV_crvUSD_POOL = '0xDE37E221442Fa15C35dc19FbAE11Ed106ba52fB2'.toLowerCase();
 
   // uni3
   public static UNI3_USDbC_ETH_POOL = '0x4C36388bE6F416A29C8d8Eee81C771cE6bE14B18'.toLowerCase();
-
-
-
 }

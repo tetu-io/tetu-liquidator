@@ -68,7 +68,7 @@ const argv = require('yargs/yargs')()
     },
     maticForkBlock: {
       type: "number",
-      default: 0
+      default: 48388400
     },
     ftmForkBlock: {
       type: "number",
@@ -96,6 +96,10 @@ const argv = require('yargs/yargs')()
     bscForkBlock: {
       type: "number",
       default: 0
+    },
+    baseForkBlock: {
+      type: "number",
+      default: 4893200
     },
   }).argv;
 
@@ -127,13 +131,15 @@ export default {
                 argv.hardhatChainId === 421611 ? argv.arbtestRpcUrl :
                   argv.hardhatChainId === 43113 ? argv.fujiRpcUrl :
                     argv.hardhatChainId === 56 ? argv.bscRpcUrl :
-                      undefined,
+                      argv.hardhatChainId === 8453 ? argv.baseRpcUrl :
+                        undefined,
         blockNumber:
           argv.hardhatChainId === 1 ? argv.ethForkBlock !== 0 ? argv.ethForkBlock : undefined :
             argv.hardhatChainId === 137 ? argv.maticForkBlock !== 0 ? argv.maticForkBlock : undefined :
               argv.hardhatChainId === 250 ? argv.ftmForkBlock !== 0 ? argv.ftmForkBlock : undefined :
                 argv.hardhatChainId === 56 ? argv.bscForkBlock !== 0 ? argv.bscForkBlock : undefined :
-                  undefined
+                  argv.hardhatChainId === 8453 ? argv.baseForkBlock !== 0 ? argv.baseForkBlock : undefined :
+                    undefined
       } : undefined,
       accounts: {
         mnemonic: "test test test test test test test test test test test junk",
