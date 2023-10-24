@@ -34,8 +34,9 @@ export class BaseAddresses {
   public static USDT_TOKEN = ''.toLowerCase();
 
   public static WBTC_TOKEN = ''.toLowerCase();
-  public static DAI_TOKEN = ''.toLowerCase();
+  public static DAI_TOKEN = '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb'.toLowerCase();
   public static CRV_TOKEN = '0x8Ee73c484A26e0A5df2Ee2a4960B789967dd0415'.toLowerCase();
+  public static WELL_TOKEN = '0xffA3F8737C39e36dec4300B162c2153c67c8352f'.toLowerCase();
 
   // curve
   public static CURVE_CB_ETH_ETH_LP_TOKEN = '0x98244d93D42b42aB3E3A4D12A5dc0B3e7f8F32f9'.toLowerCase();

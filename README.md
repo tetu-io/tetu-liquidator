@@ -53,6 +53,7 @@ This solution is able to liquidate token to another token with strict predefined
 | UniV3Swapper    | [0x00379dD90b2A337C4652E286e4FBceadef940a21](https://basescan.org//address/0x00379dD90b2A337C4652E286e4FBceadef940a21#readProxyContract) |
 | CurveSwapper256 | [0x57205cC741f8787a5195B2126607ac505E11B650](https://basescan.org//address/0x57205cC741f8787a5195B2126607ac505E11B650#readProxyContract) |
 | CurveSwapper128 | [0x03fD3aE2758aB37E8692e1844e0692e9B058C735](https://basescan.org//address/0x03fD3aE2758aB37E8692e1844e0692e9B058C735#readProxyContract) |
+| DystopiaSwapper | [0x1d2664F6376294D9852CC710a2f3f77532BA3Ba2](https://basescan.org//address/0x1d2664F6376294D9852CC710a2f3f77532BA3Ba2#readProxyContract) |
 
 ## Links
 
