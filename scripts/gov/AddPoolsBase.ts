@@ -15,6 +15,7 @@ const DYSTOPIA_SWAPPER = '0x1d2664F6376294D9852CC710a2f3f77532BA3Ba2';
 const POOL_WETH_WELL_VOLATILE_AMM = "0xffA3F8737C39e36dec4300B162c2153c67c8352f";
 const UNISWAPV3_USDC_USDbC_100 = '0x06959273E9A65433De71F5A452D529544E07dDD0'.toLowerCase()
 const UNISWAPV3_DAI_USDbC_100 = '0x22F9623817F152148B4E080E98Af66FBE9C5AdF8'.toLowerCase()
+const UNISWAPV3_USDbC_tUSDbC = '0x99a17985111FcB2B0544b0A19d4585ab671681C9'.toLowerCase()
 
 
 const META: {
@@ -25,27 +26,9 @@ const META: {
 }[] =
   [
     {
-      pool: POOL_WETH_WELL_VOLATILE_AMM,
+      pool: BaseAddresses.AERODROME_USDbC_tUSDbC_POOL,
       swapper: DYSTOPIA_SWAPPER,
-      tokenIn: BaseAddresses.WELL_TOKEN,
-      tokenOut: BaseAddresses.WETH_TOKEN
-    },
-    {
-      pool: POOL_WETH_WELL_VOLATILE_AMM,
-      swapper: DYSTOPIA_SWAPPER,
-      tokenIn: BaseAddresses.WETH_TOKEN,
-      tokenOut: BaseAddresses.WELL_TOKEN
-    },
-    {
-      pool: UNISWAPV3_USDC_USDbC_100,
-      swapper: UNI3_SWAPPER,
-      tokenIn: BaseAddresses.USDC_TOKEN,
-      tokenOut: BaseAddresses.USDbC_TOKEN
-    },
-    {
-      pool: UNISWAPV3_DAI_USDbC_100,
-      swapper: UNI3_SWAPPER,
-      tokenIn: BaseAddresses.DAI_TOKEN,
+      tokenIn: BaseAddresses.tUSDbC_TOKEN,
       tokenOut: BaseAddresses.USDbC_TOKEN
     },
   ]

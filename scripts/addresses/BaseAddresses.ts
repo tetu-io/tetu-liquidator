@@ -25,6 +25,7 @@ export class BaseAddresses {
 
 
   // tokens
+  public static TETU_TOKEN = '0x5E42c17CAEab64527D9d80d506a3FE01179afa02'.toLowerCase();
   public static WETH_TOKEN = '0x4200000000000000000000000000000000000006'.toLowerCase();
 
   public static USDC_TOKEN = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913'.toLowerCase();
@@ -36,7 +37,8 @@ export class BaseAddresses {
   public static WBTC_TOKEN = ''.toLowerCase();
   public static DAI_TOKEN = '0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb'.toLowerCase();
   public static CRV_TOKEN = '0x8Ee73c484A26e0A5df2Ee2a4960B789967dd0415'.toLowerCase();
-  public static WELL_TOKEN = '0xffA3F8737C39e36dec4300B162c2153c67c8352f'.toLowerCase();
+  public static WELL_TOKEN = '0xFF8adeC2221f9f4D8dfbAFa6B9a297d17603493D'.toLowerCase();
+  public static tUSDbC_TOKEN = '0x68f0a05FDc8773d9a5Fd1304ca411ACc234ce22c'.toLowerCase();
 
   // curve
   public static CURVE_CB_ETH_ETH_LP_TOKEN = '0x98244d93D42b42aB3E3A4D12A5dc0B3e7f8F32f9'.toLowerCase();
@@ -47,4 +49,7 @@ export class BaseAddresses {
 
   // uni3
   public static UNI3_USDbC_ETH_POOL = '0x4C36388bE6F416A29C8d8Eee81C771cE6bE14B18'.toLowerCase();
+
+  // aerodrome
+  public static AERODROME_USDbC_tUSDbC_POOL = '0x07Eca3F678C86B89e428F452B9d5bbcb38B749Cd'.toLowerCase();
 }
