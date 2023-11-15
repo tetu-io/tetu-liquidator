@@ -27,7 +27,7 @@ contract Uni3Swapper is ControllableV3, ISwapper, IUniswapV3SwapCallback {
   // *************************************************************
 
   /// @dev Version of this contract. Adjust manually on each code modification.
-  string public constant UNI_SWAPPER3_VERSION = "1.0.3";
+  string public constant UNI_SWAPPER3_VERSION = "1.0.4";
   uint public constant FEE_DENOMINATOR = 100_000;
   uint public constant PRICE_IMPACT_DENOMINATOR = 100_000;
   /// @dev The minimum value that can be returned from #getSqrtRatioAtTick. Equivalent to getSqrtRatioAtTick(MIN_TICK)
@@ -87,6 +87,9 @@ contract Uni3Swapper is ControllableV3, ISwapper, IUniswapV3SwapCallback {
     address /*tokenOut*/,
     uint amount
   ) public view override returns (uint) {
+    if (amount == 0) {
+      return 0;
+    }
     address token0 = IUniswapV3Pool(pool).token0();
     address token1 = IUniswapV3Pool(pool).token1();
 
@@ -110,11 +113,7 @@ contract Uni3Swapper is ControllableV3, ISwapper, IUniswapV3SwapCallback {
     }
     uint price = purePrice / divider / precision / (precision > 1e18 ? (precision / 1e18) : 1);
 
-    if (amount != 0) {
-      return price * amount / (10 ** tokenInDecimals);
-    } else {
-      return price;
-    }
+    return price * amount / (10 ** tokenInDecimals);
   }
 
   // *************************************************************

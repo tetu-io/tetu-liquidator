@@ -5,11 +5,10 @@ import {
   Controller,
   IERC20__factory,
   IERC20Metadata__factory,
-  MockToken, TetuLiquidator__factory,
-  Uni2Swapper, Uni3Swapper,
-  UniswapV2Factory,
-  UniswapV2Pair,
-  UniswapV2Pair__factory, UniswapV3Factory, UniswapV3Pool, UniswapV3Pool__factory
+  MockToken,
+  Uni3Swapper,
+  UniswapV3Factory,
+  UniswapV3Pool__factory
 } from "../../typechain";
 import {formatUnits, parseUnits} from "ethers/lib/utils";
 import {TimeUtils} from "../TimeUtils";
@@ -17,7 +16,6 @@ import {DeployerUtils} from "../../scripts/utils/DeployerUtils";
 import {Misc} from "../../scripts/utils/Misc";
 import {UniswapUtils} from "../UniswapUtils";
 import {MaticAddresses} from "../../scripts/addresses/MaticAddresses";
-import {RunHelper} from "../../scripts/utils/RunHelper";
 
 // tslint:disable-next-line:no-var-requires
 const hre = require("hardhat");
@@ -80,7 +78,7 @@ describe("Uni3SwapperTests", function () {
   });
 
   it("swap lido to usdc", async () => {
-    if(hre.network.config.chainId !== 137) {
+    if (hre.network.config.chainId !== 137) {
       return;
     }
     const lidoHolder = await Misc.impersonate('0x87D93d9B2C672bf9c9642d853a8682546a5012B5')
@@ -100,7 +98,7 @@ describe("Uni3SwapperTests", function () {
   });
 
   it("lido to usdc price", async () => {
-    if(hre.network.config.chainId !== 137) {
+    if (hre.network.config.chainId !== 137) {
       return;
     }
     const LIDO = '0xC3C7d422809852031b44ab29EEC9F1EfF2A58756';
@@ -129,7 +127,7 @@ describe("Uni3SwapperTests", function () {
   });
 
   it("lido to matic price", async () => {
-    if(hre.network.config.chainId !== 137) {
+    if (hre.network.config.chainId !== 137) {
       return;
     }
     const LIDO = '0xC3C7d422809852031b44ab29EEC9F1EfF2A58756';
@@ -158,7 +156,7 @@ describe("Uni3SwapperTests", function () {
   });
 
   it("usdt to usdc price", async () => {
-    if(hre.network.config.chainId !== 137) {
+    if (hre.network.config.chainId !== 137) {
       return;
     }
     const USDT = '0xc2132D05D31c914a87C6611C10748AEb04B58e8F';
@@ -166,20 +164,20 @@ describe("Uni3SwapperTests", function () {
     const POOL = '0xDaC8A8E6DBf8c690ec6815e0fF03491B2770255D'
 
     const price = +formatUnits(await swapper.getPrice(
-        POOL,
-        USDT,
-        USDC,
-        parseUnits('1', 6)
+      POOL,
+      USDT,
+      USDC,
+      parseUnits('1', 6)
     ), 6)
 
     console.log(price);
     expect(price).approximately(1, 0.01);
 
     const price2 = +formatUnits(await swapper.getPrice(
-        POOL,
-        USDC,
-        USDT,
-        parseUnits('1', 6)
+      POOL,
+      USDC,
+      USDT,
+      parseUnits('1', 6)
     ), 6)
 
     console.log(price2);
@@ -187,7 +185,7 @@ describe("Uni3SwapperTests", function () {
   });
 
   it("wbtc to usdc price", async () => {
-    if(hre.network.config.chainId !== 137) {
+    if (hre.network.config.chainId !== 137) {
       return;
     }
     const WBTC = '0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6';
@@ -195,20 +193,20 @@ describe("Uni3SwapperTests", function () {
     const POOL = '0x847b64f9d3A95e977D157866447a5C0A5dFa0Ee5'
 
     const price = +formatUnits(await swapper.getPrice(
-        POOL,
-        WBTC,
-        USDC,
-        0
+      POOL,
+      WBTC,
+      USDC,
+      parseUnits('1', 8)
     ), 6)
 
     console.log(price);
     expect(price).approximately(28000, 10000);
 
     const price2 = +formatUnits(await swapper.getPrice(
-        POOL,
-        USDC,
-        WBTC,
-        0
+      POOL,
+      USDC,
+      WBTC,
+      parseUnits('1', 6)
     ), 8)
 
     console.log(price2);
@@ -216,7 +214,7 @@ describe("Uni3SwapperTests", function () {
   });
 
   it("WETH to usdc price", async () => {
-    if(hre.network.config.chainId !== 137) {
+    if (hre.network.config.chainId !== 137) {
       return;
     }
     const WETH = MaticAddresses.WETH_TOKEN;
@@ -224,20 +222,20 @@ describe("Uni3SwapperTests", function () {
     const POOL = '0x45dDa9cb7c25131DF268515131f647d726f50608'
 
     const price = +formatUnits(await swapper.getPrice(
-        POOL,
-        WETH,
-        USDC,
-        parseUnits('10')
+      POOL,
+      WETH,
+      USDC,
+      parseUnits('10')
     ), 6)
 
     console.log(price);
     expect(price).approximately(19000, 4000);
 
     const price2 = +formatUnits(await swapper.getPrice(
-        POOL,
-        USDC,
-        WETH,
-        0
+      POOL,
+      USDC,
+      WETH,
+      parseUnits('1', 6)
     ), 18)
 
     console.log(price2);
@@ -245,7 +243,7 @@ describe("Uni3SwapperTests", function () {
   });
 
   it("wbtc to eth price", async () => {
-    if(hre.network.config.chainId !== 137) {
+    if (hre.network.config.chainId !== 137) {
       return;
     }
     const WBTC = '0x1BFD67037B42Cf73acF2047067bd4F2C47D9BfD6';
@@ -253,20 +251,20 @@ describe("Uni3SwapperTests", function () {
     const POOL = '0x50eaEDB835021E4A108B7290636d62E9765cc6d7'
 
     const price = +formatUnits(await swapper.getPrice(
-        POOL,
-        WBTC,
-        WETH,
-        0
+      POOL,
+      WBTC,
+      WETH,
+      parseUnits('1', 8)
     ), 18)
 
     console.log(price);
     expect(price).approximately(14, 5);
 
     const price2 = +formatUnits(await swapper.getPrice(
-        POOL,
-        WETH,
-        WBTC,
-        0
+      POOL,
+      WETH,
+      WBTC,
+      parseUnits('1')
     ), 8)
 
     console.log(price2);
