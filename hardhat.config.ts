@@ -101,6 +101,13 @@ const argv = require('yargs/yargs')()
       type: "number",
       default: 4893200
     },
+    zkevmRpcUrl: {
+      type: "string",
+    },
+    zkevmForkBlock: {
+      type: "number",
+      default: 8579672
+    },
   }).argv;
 
 
@@ -132,14 +139,16 @@ export default {
                   argv.hardhatChainId === 43113 ? argv.fujiRpcUrl :
                     argv.hardhatChainId === 56 ? argv.bscRpcUrl :
                       argv.hardhatChainId === 8453 ? argv.baseRpcUrl :
-                        undefined,
+												argv.hardhatChainId === 1101 ? argv.zkevmRpcUrl :
+	                        undefined,
         blockNumber:
           argv.hardhatChainId === 1 ? argv.ethForkBlock !== 0 ? argv.ethForkBlock : undefined :
             argv.hardhatChainId === 137 ? argv.maticForkBlock !== 0 ? argv.maticForkBlock : undefined :
               argv.hardhatChainId === 250 ? argv.ftmForkBlock !== 0 ? argv.ftmForkBlock : undefined :
                 argv.hardhatChainId === 56 ? argv.bscForkBlock !== 0 ? argv.bscForkBlock : undefined :
                   argv.hardhatChainId === 8453 ? argv.baseForkBlock !== 0 ? argv.baseForkBlock : undefined :
-                    undefined
+										argv.hardhatChainId === 1101 ? argv.zkevmForkBlock !== 0 ? argv.zkevmForkBlock : undefined :
+                    	undefined
       } : undefined,
       accounts: {
         mnemonic: "test test test test test test test test test test test junk",
@@ -221,6 +230,17 @@ export default {
         }
       }
     },
+		zkevm: {
+      url: argv.zkevmRpcUrl || '',
+      chainId: 1101,
+      accounts: [argv.privateKey],
+      gasPrice: 1000000000,
+      verify: {
+        etherscan: {
+          apiKey: argv.networkScanKeyZkevm
+        }
+      }
+		},
   },
   etherscan: {
     //  https://hardhat.org/plugins/nomiclabs-hardhat-etherscan.html#multiple-api-keys-and-alternative-block-explorers
@@ -234,6 +254,7 @@ export default {
       avalancheFujiTestnet: argv.networkScanKeyAvalanche || argv.networkScanKey,
       bsc: argv.networkScanKeyBsc || argv.networkScanKey,
       base: argv.networkScanKeyBase,
+      zkevm: argv.networkScanKeyZkevm || argv.networkScanKey,
     },
     customChains: [
       {
@@ -243,7 +264,15 @@ export default {
           apiURL: "https://api.basescan.org/api",
           browserURL: "https://basescan.org"
         }
-      }
+      },
+      {
+        network: "zkevm",
+        chainId: 1101,
+        urls: {
+          apiURL: "https://api-zkevm.polygonscan.com/api",
+          browserURL: "https://zkevm.polygonscan.com/"
+        }
+      },
     ]
   },
   solidity: {
