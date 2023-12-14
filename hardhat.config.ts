@@ -215,6 +215,11 @@ export default {
       chainId: 8453,
       // gas: 50_000_000_000,
       accounts: [argv.privateKey],
+      verify: {
+        etherscan: {
+          apiKey: argv.networkScanKeyBase
+        }
+      }
     },
   },
   etherscan: {
