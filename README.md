@@ -56,6 +56,15 @@ This solution is able to liquidate token to another token with strict predefined
 | DystopiaSwapper | [0x1d2664F6376294D9852CC710a2f3f77532BA3Ba2](https://basescan.org//address/0x1d2664F6376294D9852CC710a2f3f77532BA3Ba2#readProxyContract) |
 | Pancake3Swapper | [0x8aAc356B49e75DAbd4384689b00A02DA68cde62B](https://basescan.org//address/0x8aAc356B49e75DAbd4384689b00A02DA68cde62B#readProxyContract) |
 
+## zkEVM addresses
+
+| Name            | Address                                                                                                                                  |
+|-----------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| Controller      | [0x60BF9c1FC8b93B6400608c82107a852C54aD110F](https://zkevm.polygonscan.com/address/0x60BF9c1FC8b93B6400608c82107a852C54aD110F) |
+| Liquidator      | [0xBcda73B7184D5974F77721db79ff8BA190b342ce](https://zkevm.polygonscan.com/address/0xBcda73B7184D5974F77721db79ff8BA190b342ce) |
+| UniV2Swapper    | [0xa075F8FF74941Fae5bf9Fd48736E4422474A5A66](https://zkevm.polygonscan.com/address/0xa075F8FF74941Fae5bf9Fd48736E4422474A5A66) |
+
+
 ## Links
 
 Web: https://tetu.io/
