@@ -64,6 +64,7 @@ This solution is able to liquidate token to another token with strict predefined
 | Liquidator      | [0xBcda73B7184D5974F77721db79ff8BA190b342ce](https://zkevm.polygonscan.com/address/0xBcda73B7184D5974F77721db79ff8BA190b342ce#readProxyContract) |
 | UniV2Swapper    | [0xa075F8FF74941Fae5bf9Fd48736E4422474A5A66](https://zkevm.polygonscan.com/address/0xa075F8FF74941Fae5bf9Fd48736E4422474A5A66#readProxyContract) |
 | AlgebraSwapper  | [0xfe5C094C5B2D51B599cE25A81595329045815b96](https://zkevm.polygonscan.com/address/0xfe5C094C5B2D51B599cE25A81595329045815b96#readProxyContract) |
+| Pancake3Swapper | [0x0d1e753a25ebda689453309112904807625befbe](https://zkevm.polygonscan.com/address/0x0d1e753a25ebda689453309112904807625befbe#readProxyContract) |
 
 
 ## Links
